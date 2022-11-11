@@ -76,8 +76,8 @@ draw_ball:
 	lw	$a1, 4($sp)		# $t1 = y (left corner)
 	addi	$sp, $sp, 8
 	
-	addi	$t0, $zero, 0xffffff	# set ball colour
-	addi	$t1, $zero, 1		# set ball width and height
+	li	$t0, 0xffffff	# set ball colour
+	li	$t1, 1		# set ball width and height
 	
 	addi	$sp, $sp, -24
 	sw	$t0, 0($sp)		# push ball colour onto stack
@@ -104,7 +104,7 @@ draw_walls:
 	sw	$s1, 8($sp)
 	sw	$s2, 12($sp)
 	
-	addi	$s0, $zero, 0xaaaaaa	# wall colour
+	li	$s0, 0xaaaaaa	# wall colour
 	lw	$s1, WALL_WIDTH		# load wall width
 	addi	$s2, $a0, -2		# side wall height
 	
@@ -135,9 +135,9 @@ draw_walls:
 	sw	$s1, 16($sp)		# push ceiling height onto stack
 	jal	draw_rectangle		# draw ceiling
 
-	addi	$s0, $zero, 0xff88ff	# buffer colour
+	li	$s0, 0xff88ff		# buffer colour
 	
-	addi	$t0, $zero, 5		# buffer height
+	li	$t0, 5			# buffer height
 	addi	$sp, $sp, -20
 	sw	$s0, 0($sp)		# push buffer colour onto stack
 	sw	$zero, 4($sp)		# push left buffer x coordinate onto stack
@@ -148,7 +148,7 @@ draw_walls:
 	
 	add	$t0, $zero, 128
 	sub	$t0, $t0, $s1		# right buffer y coordinate
-	addi	$t1, $zero, 5		# buffer height
+	li	$t1, 5			# buffer height
 	addi	$sp, $sp, -20
 	sw	$s0, 0($sp)		# push buffer colour onto stack
 	sw	$t0, 4($sp)		# push right buffer x coordinate onto stack
