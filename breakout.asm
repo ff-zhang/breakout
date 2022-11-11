@@ -89,4 +89,5 @@ game_loop:
     #5. Go back to 1
 	b	game_loop
 	
-end:
+end:	li	$v0, 10 
+	syscall
