@@ -23,7 +23,7 @@ ADDR_KBRD:
 	.word	0xffff0000
 
 PADDLE_Y:
-	.word	59
+	.word	55
 
 ##############################################################################
 # Mutable Data
@@ -33,16 +33,26 @@ PADDLE_X:
 	
 BALL_X:	.word	63
 
-BALL_Y:	.word	58
+BALL_Y:	.word	0
+
+ROW_COLOURS:				# require A[0] = A.length - 1
+	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
+
+BRICKS_Y:
+	.word	12			# y coordinate of top row
 
 ##############################################################################
 # Code
 ##############################################################################
 	.text
 	.globl	main
-
+	
 	# Run the Brick Breaker game.
-main:	lw	$t0, PADDLE_X
+main:	lw	$t0, PADDLE_Y
+	addi	$t0, $t0, -1
+	sw	$t0, BALL_Y		# ball initially starts on top the paddle
+
+	lw	$t0, PADDLE_X
 	lw	$t1, PADDLE_Y
 	addi	$sp, $sp, -8
 	sw	$t0, 0($sp)		# push x coordinate onto stack
@@ -56,12 +66,16 @@ main:	lw	$t0, PADDLE_X
 	sw	$t1, 4($sp)		# push y coordinate onto stack
 	jal	draw_ball
 	
-	lw	$t0, PADDLE_X
+	lw	$t0, PADDLE_Y
 	addi	$sp, $sp, -4
 	sw	$t0, 0($sp)		# push paddle y coordinate onto stack
 	jal	draw_walls
 	
-	# jal	draw_bricks
+	lw	$t0, BRICKS_Y
+	la	$t1, ROW_COLOURS
+	sw	$t0, 0($sp)		# push y coordinate of top row onto stack
+	sw	$t1, 4($sp)		# push ptr to array of row colours onto stack
+	jal	draw_bricks
 
 game_loop:
 	j	end
