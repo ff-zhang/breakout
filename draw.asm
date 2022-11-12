@@ -25,20 +25,18 @@ ADDR_KBRD:
 SCREEN_WIDTH:
 	.word	128		# display width in pixels divided by unit width in pixels
 	
-PADDLE_WIDTH:
-	.word	13
-
-PADDLE_HEIGHT:
-	.word	1
+PADDLE_DIM:
+	.word	13, 1
 	
 WALL_WIDTH:
 	.word	4
 	
-BRICK_WIDTH:
-	.word	8		# should evenly decide the width of the play space
-	
-BRICK_HEIGHT:
-	.word	4		# needs to be larger than 2
+BUFFER_HEIGHT:
+	.word	5
+
+# (width, height)
+BRICK_DIM:
+	.word	8, 4
 
 ##############################################################################
 # Code
@@ -48,50 +46,52 @@ BRICK_HEIGHT:
 	j main
 
 draw_paddle:
-	lw	$a0, 0($sp)		# $t0 = x (left corner)
-	lw	$a1, 4($sp)		# $t1 = y (left corner)
-	addi	$sp, $sp, 8
-	
-	addi	$t0, $zero, 0xaaaaaa	# set paddle colour
-	lw	$t1, PADDLE_WIDTH	# set paddle width
-	lw	$t2, PADDLE_HEIGHT	# set paddle height
-	
-	addi	$sp, $sp, -24
-	sw	$t0, 0($sp)		# push paddle colour onto stack
-	sw	$a0, 4($sp)		# push x coordinate onto stack
-	sw	$a1, 8($sp)		# push y coordinate onto stack
-	sw	$t1, 12($sp)		# push paddle width onto stack
-	sw	$t2, 16($sp)		# push paddle height onto stack
-	sw	$ra, 20($sp)		# push return address onto stack
-	
-	jal	draw_rectangle
-	
-	lw	$ra, 0($sp)		# get return address from stack
+	lw	$a0, 0($sp)		# ptr to paddle coordinates
 	addi	$sp, $sp, 4
 	
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+	li	$t0, 0xaaaaaa		# set paddle colour
+	lw	$t1, 0($a0)		# load paddle x coordinate
+	lw	$t2, 4($a0)		# load paddle x coordinate
+	lw	$t3, PADDLE_DIM		# load paddle width
+	lw	$t4, PADDLE_DIM+4	# load paddle height
+	
+	addi	$sp, $sp, -20
+	sw	$t0, 0($sp)		# push colour onto stack
+	sw	$t1, 4($sp)		# push x coordinate onto stack
+	sw	$t2, 8($sp)		# push y coordinate onto stack
+	sw	$t3, 12($sp)		# push width onto stack
+	sw	$t4, 16($sp)		# push height onto stack
+	jal	draw_rectangle		# draw paddle at (x, y)
+	
+	lw	$ra, 0($sp)		# load return address from stack
+	addi	$sp, $sp, 4
 	jr	$ra			# return
 	
 draw_ball:
-	lw	$a0, 0($sp)		# $t0 = x (left corner)
-	lw	$a1, 4($sp)		# $t1 = y (left corner)
+	lw	$a1, 0($sp)		# ptr to ball coordinates
+	lw	$a0, 0($a1)		# load ball x coordinate
+	lw	$a1, 4($a1)		# load ball y coordinate
 	addi	$sp, $sp, 8
 	
-	li	$t0, 0xffffff	# set ball colour
-	li	$t1, 1		# set ball width and height
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
 	
-	addi	$sp, $sp, -24
-	sw	$t0, 0($sp)		# push ball colour onto stack
+	li	$t0, 0xffffff		# set ball colour
+	li	$t1, 1			# set ball width and height
+	
+	addi	$sp, $sp, -20
+	sw	$t0, 0($sp)		# push colour onto stack
 	sw	$a0, 4($sp)		# push x coordinate onto stack
 	sw	$a1, 8($sp)		# push y coordinate onto stack
-	sw	$t1, 12($sp)		# push ball width onto stack
-	sw	$t1, 16($sp)		# push ball height onto stack
-	sw	$ra, 20($sp)		# push return address onto stack
+	sw	$t1, 12($sp)		# push width onto stack
+	sw	$t1, 16($sp)		# push height onto stack
+	jal	draw_rectangle		# draw ball at (x, y)
 	
-	jal	draw_rectangle
-	
-	lw	$ra, 0($sp)		# get return address from stack
+	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
-	
 	jr	$ra			# return
 	
 draw_walls:
@@ -100,69 +100,68 @@ draw_walls:
 	
 	addi	$sp, $sp, -16
 	sw	$ra, 0($sp)		# push return address onto stack
-	sw	$s0, 4($sp)
-	sw	$s1, 8($sp)
-	sw	$s2, 12($sp)
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	sw	$s2, 12($sp)		# push old $s2 value on stack
 	
-	li	$s0, 0xaaaaaa	# wall colour
+	li	$s0, 0xaaaaaa		# set wall colour
 	lw	$s1, WALL_WIDTH		# load wall width
-	addi	$s2, $a0, -2		# side wall height
+	addi	$s2, $a0, -2		# set side wall height = paddle y - 2
 	
 	addi	$sp, $sp, -20
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	sw	$zero, 4($sp)		# push left wall x coordinate onto stack
 	sw	$zero, 8($sp)		# push left wall y coordinate onto stack
-	sw	$s1, 12($sp)		# push side wall width onto stack
-	sw	$s2, 16($sp)		# push wall height onto stack
+	sw	$s1, 12($sp)		# push wall width onto stack
+	sw	$s2, 16($sp)		# push side wall height onto stack
 	jal	draw_rectangle		# draw left wall
 	
 	lw	$t0, SCREEN_WIDTH	# load screen width
-	sub	$t0, $t0, $s1		# right wall y coordinate
+	sub	$t0, $t0, $s1		# set right wall y coordinate = screen width - wall width
 	addi	$sp, $sp, -20
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	sw	$t0, 4($sp)		# push right wall x coordinate onto stack
 	sw	$zero, 8($sp)		# push right wall y coordinate onto stack
-	sw	$s1, 12($sp)		# push side wall width onto stack
+	sw	$s1, 12($sp)		# push wall width onto stack
 	sw	$s2, 16($sp)		# push side wall height onto stack
 	jal	draw_rectangle		# draw right wall
 	
-	lw	$t0, SCREEN_WIDTH	# load screen width as ceiling width
+	lw	$t0, SCREEN_WIDTH	# set ceiling width = screen width
 	addi	$sp, $sp, -20
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	sw	$zero, 4($sp)		# push ceiling x coordinate onto stack
 	sw	$zero, 8($sp)		# push ceiling y coordinate onto stack
 	sw	$t0, 12($sp)		# push ceiling width onto stack
-	sw	$s1, 16($sp)		# push ceiling height onto stack
+	sw	$s1, 16($sp)		# push ceiling height = wall width onto stack
 	jal	draw_rectangle		# draw ceiling
 
-	li	$s0, 0xff88ff		# buffer colour
+	li	$s0, 0xff88ff		# set buffer colour
 	
-	li	$t0, 5			# buffer height
+	lw	$t2, BUFFER_HEIGHT	# load buffer height
 	addi	$sp, $sp, -20
 	sw	$s0, 0($sp)		# push buffer colour onto stack
-	sw	$zero, 4($sp)		# push left buffer x coordinate onto stack
+	sw	$zero, 4($sp)		# push left wall x coordinate onto stack
 	sw	$s2, 8($sp)		# push left buffer y coordinate onto stack
 	sw	$s1, 12($sp)		# push wall width onto stack
-	sw	$t0, 16($sp)		# push buffer height onto stack
+	sw	$t2, 16($sp)		# push buffer height onto stack
 	jal	draw_rectangle		# draw left buffer
 	
-	add	$t0, $zero, 128
-	sub	$t0, $t0, $s1		# right buffer y coordinate
-	li	$t1, 5			# buffer height
+	lw	$t0, SCREEN_WIDTH	# load screen width
+	sub	$t0, $t0, $s1		# set right buffer y coordinate = right wall y coordinate
+	lw	$t1, BUFFER_HEIGHT	# load buffer height
 	addi	$sp, $sp, -20
 	sw	$s0, 0($sp)		# push buffer colour onto stack
-	sw	$t0, 4($sp)		# push right buffer x coordinate onto stack
+	sw	$t0, 4($sp)		# push right wall x coordinate onto stack
 	sw	$s2, 8($sp)		# push right buffer y coordinate onto stack
 	sw	$s1, 12($sp)		# push wall width onto stack
 	sw	$t1, 16($sp)		# push buffer height onto stack
 	jal	draw_rectangle		# draw right buffer
 	
 	lw	$ra, 0($sp)		# get return address from stack
-	lw	$s0, 4($sp)
-	lw	$s1, 8($sp)
-	lw	$s2, 12($sp)
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	lw	$s2, 12($sp)		# pop old $s2 value from stack
 	addi	$sp, $sp, 16
-	
 	jr	$ra			# return
 
 draw_bricks:
@@ -177,69 +176,68 @@ draw_bricks:
 	sw	$s2, 12($sp)		# push old $s2 value on stack
 	
 	add	$s0, $zero, $a0
-	add	$s1, $a1, 4		# ptr to first element of array
-	add	$s2, $zero, $zero	# initialize loop variable i = 0
+	add	$s1, $a1, 4		# ptr to first colour element of array
+	li	$s2, 0			# initialize loop variable i = 0
 l3:	lw	$t0, -4($s1)		# loop condition = number of rows
 	beq	$s2, $t0, n3
 	
-	sll	$t0, $s2, 2		# offset of ptr to row $s0 colour from row 0 colour
-	add	$t0, $s1, $t0		# ptr to row $s0 colour
+	sll	$t0, $s2, 2		# get offset of ptr to row $s0 colour from row 0 colour
+	add	$t0, $s1, $t0		# set ptr to row $s0 colour
 	lw	$t0, 0($t0)		# load row $s0 colour
-	lw	$t1, BRICK_HEIGHT	# load brick height
+	lw	$t1, BRICK_DIM+4	# load brick height
 	mulo	$t1, $s2, $t1
-	add	$t1, $s0, $t1		# y coordinate of row $s0
+	add	$t1, $s0, $t1		# load y coordinate of row $s0 = brick heigh * i + top row y coordinate
 	
 	addi	$sp, $sp, -8
 	sw	$t0, 0($sp)		# push row $s0 colour onto stack
-	sw	$t1, 4($sp)
+	sw	$t1, 4($sp)		# push y coordinate onto stack
 	jal	draw_row
 
-u3:	addi	$s2, $s2, 1
+u3:	addi	$s2, $s2, 1		# i++
 	j	l3
 
 n3:	lw	$ra, 0($sp)		# pop return address from stack
 	lw	$s0, 4($sp)		# pop old $s0 value from stack
 	lw	$s1, 8($sp)		# pop old $s1 value from stack
-	lw	$s2, 12($sp)		# push old $s2 value on stack
+	lw	$s2, 12($sp)		# pop old $s2 value on stack
 	addi	$sp, $sp, 16
-	
-	jr	$ra			# return\
+	jr	$ra			# return
 
 draw_row:
 	lw	$a0, 0($sp)		# pop colour of bricks from stack
-	lw	$a1, 4($sp)		# y location of the top of the row
+	lw	$a1, 4($sp)		# pop y coordinate of the top of the row
 	addi	$sp, $sp, 8
 
 	addi	$sp, $sp, -20
 	sw	$ra, 0($sp)		# push return address onto stack
-	sw	$s0, 4($sp)		# push old $s0 value on stack
-	sw	$s1, 8($sp)		# push old $s1 value on stack
-	sw	$s2, 12($sp)		# push old $s2 value on stack
-	sw	$s3, 16($sp)		# push old $s2 value on stack
+	sw	$s0, 4($sp)		# push old $s0 value onto stack
+	sw	$s1, 8($sp)		# push old $s1 value onto stack
+	sw	$s2, 12($sp)		# push old $s2 value onto stack
+	sw	$s3, 16($sp)		# push old $s3 value onto stack
 		
-	add	$s0, $zero, $a0		# store brick colour in $s0
-	add	$s1, $zero, $a1		# store y location of row in $s1
+	move	$s0, $a0		# store brick colour in $s0
+	move	$s1, $a1		# store y location of row in $s1
 	
-	add	$s2, $zero, $zero	# initialize loop variable i = 0
+	li	$s2, 0			# initialize loop variable i = 0
 	lw	$t0, SCREEN_WIDTH	# load screen width
 	lw	$t1, WALL_WIDTH		# load wall width
-	lw	$t2, BRICK_WIDTH	# load brick width
+	lw	$t2, BRICK_DIM		# load brick width
 	mulo	$t1, $t1, 2
-	sub	$t0, $t0, $t1		# width of play space
+	sub	$t0, $t0, $t1		# width of play space = screen width - 2 * wall width
 	div	$s3, $t0, $t2		# loop condition = number of bricks per row
 l2:	beq	$s2, $s3, n2
-	addi	$sp, $sp, -12
-	
-	sw	$s0, 0($sp)		# push brick colour onto stack
-	lw	$t0, BRICK_WIDTH	# load brick width
+	lw	$t0, BRICK_DIM		# load brick width
 	lw	$t1, WALL_WIDTH		# load wall width
 	mulo	$t0, $t0, $s2
-	add	$t0, $t0, $t1
-	sw	$t0, 4($sp)		# x coordinate of brick = brick width * i + wall width
-	sw	$s1, 8($sp)
-	jal	draw_brick		# draw brick
+	add	$t0, $t0, $t1		# set x coordinate of brick = brick width * i + wall width
+	
+	addi	$sp, $sp, -12
+	sw	$s0, 0($sp)		# push brick colour onto stack
+	sw	$t0, 4($sp)		# push x coordinate onto stack
+	sw	$s1, 8($sp)		# push y coordinate onto stack
+	jal	draw_brick		# draw brick at (x, y)
 
-u2:	addi	$s2, $s2, 1
+u2:	addi	$s2, $s2, 1		# i++
 	j	l2
 
 n2:	lw	$ra, 0($sp)		# pop return address from stack
@@ -251,24 +249,24 @@ n2:	lw	$ra, 0($sp)		# pop return address from stack
 	jr	$ra			# return
 	
 draw_brick:
-	lw	$a0, 0($sp)		# pop $a0 = brick colour from stack
-	lw	$a1, 4($sp)		# pop $a1 = x (left corner) from stack
-	lw	$a2, 8($sp)		# pop $a2 = y (left corner) from stack
+	lw	$a0, 0($sp)		# pop brick colour from stack
+	lw	$a1, 4($sp)		# pop x from stack
+	lw	$a2, 8($sp)		# pop y from stack
 	addi	$sp, $sp, 12
 	
 	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)		# push return address onto stack
 	
-	lw	$t0, BRICK_WIDTH	# store brick width in $s3
-	lw	$t1, BRICK_HEIGHT	# store brick height in $s4
+	lw	$t0, BRICK_DIM		# load brick width
+	lw	$t1, BRICK_DIM+4	# load brick height
 	
 	addi	$sp, $sp, -20
 	sw	$a0, 0($sp)		# push brick colour on stack
-	sw	$a1, 4($sp)		# push brick x coordinate onto stack
-	sw	$a2, 8($sp)		# push brick y coordinate onto stack
-	sw	$t0, 12($sp)		# push brick width onto stack
-	sw	$t1, 16($sp)		# push brick height onto stack
-	jal	draw_rectangle
+	sw	$a1, 4($sp)		# push x coordinate onto stack
+	sw	$a2, 8($sp)		# push y coordinate onto stack
+	sw	$t0, 12($sp)		# push width onto stack
+	sw	$t1, 16($sp)		# push height onto stack
+	jal	draw_rectangle		# draw brick at (x, y)
 	
 	lw	$ra, 0($sp)		# pop return address from stack
 	addi	$sp, $sp, 4
@@ -276,29 +274,30 @@ draw_brick:
 	jr	$ra			# return
 
 draw_rectangle:
-	lw 	$a0, 0($sp)		# $a0 = colour
-	lw	$t0, 4($sp)		# $t0 = x (top left corner)
-	lw	$t1, 8($sp)		# $t1 = y (top left corner)
-	mulo	$t1, $t1, 128		# $t1 is leftmost pixel of row y
-	add	$a1, $t0, $t1		# $a1 is position of pixel (x, y)
-	lw	$a2, 12($sp)		# $t0 = width of rectangle
-	lw	$a3, 16($sp)		# $t1 = height of rectangle
+	lw 	$a0, 0($sp)		# pop colour from stack
+	lw	$t0, 4($sp)		# pop x from stack
+	lw	$t1, 8($sp)		# pop y from stack
+	mulo	$t1, $t1, 128		# set leftmost pixel of row y
+	add	$a1, $t0, $t1		# set position of pixel (x, y)
+	lw	$a2, 12($sp)		# load width of rectangle
+	lw	$a3, 16($sp)		# load height of rectangle
 	addi	$sp, $sp, 20
 	
-	lw	$t9, ADDR_DSPL		# $t9 is ptr to display memory location
+	lw	$t8, SCREEN_WIDTH	# load screen width
+	lw	$t9, ADDR_DSPL		# load ptr to display memory location
 	
-	add	$t0, $zero, $zero	# loop variable i = 0
-	mulo	$t1, $a2, $a3		# loop condition is number of pixels in the rectangle
+	add	$t0, $zero, $zero	# initialize loop variable i = 0
+	mulo	$t1, $a2, $a3		# set loop condition = number of pixels in the rectangle
 l1:	beq	$t0, $t1, n1
 	rem	$t2, $t0, $a2		# calulate x offset
 	div	$t3, $t0, $a2		# calculate y offset
-	mulo	$t3, $t3, 128		# use 128 as that is the width of the screen
+	mulo	$t3, $t3, $t8		# calculate leftmost pixel of row y
 	
-	add	$t2, $t2, $t3		# distance from pixel (x, y) to pixel (x offset, y offset)
-	add	$t2, $a1, $t2		# position of pixel (x', y') = (x, y) + (x offset, y offset)
-	mulo	$t2, $t2, 4		# distnace memory address of pixel (x, y) to that of (x', y')
-	add	$t2, $t2, $t9		# ptr to memory address of pixel (x', y')
-	sw	$a0, 0($t2)		# store colour at (x', y')
+	add	$t2, $t2, $t3		# calculate distance from pixel (x, y) to pixel (x offset, y offset)
+	add	$t2, $a1, $t2		# calculate position of pixel (x', y') = (x, y) + (x offset, y offset)
+	mulo	$t2, $t2, 4		# calculate distnace memory address of pixel (x, y) to that of (x', y')
+	add	$t2, $t2, $t9		# set ptr to memory address of pixel (x', y')
+	sw	$a0, 0($t2)		# store colour at memory address of pixel (x', y')
 	
 u1:	addi	$t0, $t0, 1		# i++
 	j	l1
