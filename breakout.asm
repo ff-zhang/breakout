@@ -22,28 +22,22 @@ ADDR_DSPL:
 ADDR_KBRD:
 	.word	0xffff0000
 
-# Y coordinate of the paddle
-PADDLE_Y:
-	.word	55
-
 ##############################################################################
 # Mutable Data
 ##############################################################################
-# (x, y) coordinate of the paddle
-PADDLE_X:
-	.word	57
+# (x, y) coordinates of the top left corner of the paddle
+PADDLE_COORDS:
+	.word	57, 55
 
-# X coordinate of the ball
-BALL_X:	.word	63
+# (x, y) coordinates of the ball
+BALL_COORDS:
+	.word	63, 0
 
-# Y coordinate of the ball
-BALL_Y:	.word	0
-
-# array describing colour of each row, top downwards
+# array describing colour of each row, from top to bottom
 BRICK_COLOURS:				# require A[0] = A.length - 1
 	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
 
-# Y coordinate of the first row of bricks
+# y coordinate of the top of the first row of bricks
 BRICKS_Y:
 	.word	12			# y coordinate of top row
 
@@ -54,25 +48,21 @@ BRICKS_Y:
 	.globl	main
 	
 	# Run the Brick Breaker game.
-main:	lw	$t0, PADDLE_Y		# load paddle y coordinate
+main:	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	addi	$t0, $t0, -1
-	sw	$t0, BALL_Y		# ball initially starts on top the paddle
+	sw	$t0, BALL_COORDS+4	# ball initially starts on top the paddle
 
-	lw	$t0, PADDLE_X		# load paddle x coordinate
-	lw	$t1, PADDLE_Y		# load paddle y coordinate
-	addi	$sp, $sp, -8
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	sw	$t1, 4($sp)		# push y coordinate onto stack
+	la	$t0, PADDLE_COORDS	# ptr to paddle coordinates
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)		# push paddle coordinates onto stack
 	jal	draw_paddle		# draw paddle in the center of the screen
 	
-	lw	$t0, BALL_X		# load ball x coordinate
-	lw	$t1, BALL_Y		# load ball y coordinate
-	addi	$sp, $sp, -8
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	sw	$t1, 4($sp)		# push y coordinate onto stack
+	la	$t0, BALL_COORDS	# ptr to ball coordinates
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)		# push ptr to ball coordinates onto stack
 	jal	draw_ball		# draw the ball on the center of the paddle
 	
-	lw	$t0, PADDLE_Y		# load paddle y coordinate
+	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	addi	$sp, $sp, -4
 	sw	$t0, 0($sp)		# push paddle y coordinate onto stack
 	jal	draw_walls		# draw the walls around the play area
