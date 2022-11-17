@@ -45,6 +45,8 @@ BRICK_DIM:
 	.globl draw_paddle draw_ball draw_walls draw_bricks
 	j main
 
+# parameters
+#	coords - pointer to the (x, y) coordinate of the top left corner of the paddle
 draw_paddle:
 	lw	$a0, 0($sp)		# ptr to paddle coordinates
 	addi	$sp, $sp, 4
@@ -54,7 +56,7 @@ draw_paddle:
 	
 	li	$t0, 0xaaaaaa		# set paddle colour
 	lw	$t1, 0($a0)		# load paddle x coordinate
-	lw	$t2, 4($a0)		# load paddle x coordinate
+	lw	$t2, 4($a0)		# load paddle y coordinate
 	lw	$t3, PADDLE_DIM		# load paddle width
 	lw	$t4, PADDLE_DIM+4	# load paddle height
 	
@@ -69,7 +71,9 @@ draw_paddle:
 	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
 	jr	$ra			# return
-	
+
+# parameters
+#	coords - pointer to the (x, y) coordinate of the ball
 draw_ball:
 	lw	$a1, 0($sp)		# ptr to ball coordinates
 	lw	$a0, 0($a1)		# load ball x coordinate
@@ -93,7 +97,9 @@ draw_ball:
 	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
 	jr	$ra			# return
-	
+
+# parameters
+#	y coordinate of the paddle (used to draw the coloured boundaries)
 draw_walls:
 	lw	$a0, 0($sp)		# pop paddle y coordinate from stack
 	addi	$sp, $sp, 4
@@ -164,6 +170,10 @@ draw_walls:
 	addi	$sp, $sp, 16
 	jr	$ra			# return
 
+
+# parameters
+#	y - y coordinate of the top of the first row of bricks
+#	colours - pointer to array of row colours, ordered top to bottom
 draw_bricks:
 	lw	$a0, 0($sp)		# pop y coordinate of top row from stack
 	lw	$a1, 4($sp)		# pop ptr to array of row colours from stack
@@ -203,6 +213,9 @@ n3:	lw	$ra, 0($sp)		# pop return address from stack
 	addi	$sp, $sp, 16
 	jr	$ra			# return
 
+# parameters
+#	colour - colour of bricks in the row
+#	y - y coordinate of the top of the row
 draw_row:
 	lw	$a0, 0($sp)		# pop colour of bricks from stack
 	lw	$a1, 4($sp)		# pop y coordinate of the top of the row
@@ -247,7 +260,11 @@ n2:	lw	$ra, 0($sp)		# pop return address from stack
 	lw	$s3, 16($sp)		# pop old $s1 value from stack
 	addi	$sp, $sp, 20
 	jr	$ra			# return
-	
+
+# parameters
+#	colour - colour of the brick to draw
+#	x - x coordinate of the top left corner of the brick
+#	y - y coordinate of the top left corner of the brick
 draw_brick:
 	lw	$a0, 0($sp)		# pop brick colour from stack
 	lw	$a1, 4($sp)		# pop x from stack
@@ -273,6 +290,12 @@ draw_brick:
 	
 	jr	$ra			# return
 
+# parameters
+#	colour - colour of the rectangle to draw
+#	x - x coordinate of the top left corner of the brick
+#	y - y coordinate of the top left corner of the brick
+#	width - the width of the rectangle
+#	height - the height of the rectangle
 draw_rectangle:
 	lw 	$a0, 0($sp)		# pop colour from stack
 	lw	$t0, 4($sp)		# pop x from stack
