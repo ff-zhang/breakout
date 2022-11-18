@@ -176,7 +176,7 @@ draw_walls:
 #	colours - pointer to array of row colours, ordered top to bottom
 draw_bricks:
 	lw	$a0, 0($sp)		# pop y coordinate of top row from stack
-	lw	$a1, 4($sp)		# pop ptr to array of row colours from stack
+	lw	$a1, 4($sp)		# pop ptr to array of colours from stack
 	addi	$sp, $sp, 8
 	
 	addi	$sp, $sp, -16
@@ -185,80 +185,43 @@ draw_bricks:
 	sw	$s1, 8($sp)		# push old $s1 value on stack
 	sw	$s2, 12($sp)		# push old $s2 value on stack
 	
-	add	$s0, $zero, $a0
-	add	$s1, $a1, 4		# ptr to first colour element of array
-	li	$s2, 0			# initialize loop variable i = 0
-l3:	lw	$t0, -4($s1)		# loop condition = number of rows
-	beq	$s2, $t0, n3
+	add	$s0, $zero, $a0		# store y coordinate of top row
+	add	$s1, $a1, 8		# ptr to first brick colour element of array
+	li	$s2, 0			# initialize loop variable k = 0
+l2:	lw	$t8, -8($s1)		# load number of rows
+	lw	$t9, -4($s1)		# load number of bricks per row
+	mulo	$t0, $t8, $t9		# loop condition = number of elements
+	beq	$s2, $t0, n2
 	
-	sll	$t0, $s2, 2		# get offset of ptr to row $s0 colour from row 0 colour
-	add	$t0, $s1, $t0		# set ptr to row $s0 colour
-	lw	$t0, 0($t0)		# load row $s0 colour
-	lw	$t1, BRICK_DIM+4	# load brick height
-	mulo	$t1, $s2, $t1
-	add	$t1, $s0, $t1		# load y coordinate of row $s0 = brick heigh * i + top row y coordinate
+	sll	$t0, $s2, 2		# i * 4
+	add	$t0, $s1, $t0		# ptr to ith element of array
+	lw	$t0, 0($t0)		# load colour of brick
+	rem	$t1, $s2, $t9
+	div	$t2, $s2, $t9		# ($t1, $t2) = (i, j) location of k in 2-D array
+
+	lw	$t7, WALL_WIDTH		# load wall width
+	lw	$t8, BRICK_DIM		# load brick width
+	lw	$t9, BRICK_DIM+4	# load brick height
 	
-	addi	$sp, $sp, -8
-	sw	$t0, 0($sp)		# push row $s0 colour onto stack
-	sw	$t1, 4($sp)		# push y coordinate onto stack
-	jal	draw_row
-
-u3:	addi	$s2, $s2, 1		# i++
-	j	l3
-
-n3:	lw	$ra, 0($sp)		# pop return address from stack
-	lw	$s0, 4($sp)		# pop old $s0 value from stack
-	lw	$s1, 8($sp)		# pop old $s1 value from stack
-	lw	$s2, 12($sp)		# pop old $s2 value on stack
-	addi	$sp, $sp, 16
-	jr	$ra			# return
-
-# parameters
-#	colour - colour of bricks in the row
-#	y - y coordinate of the top of the row
-draw_row:
-	lw	$a0, 0($sp)		# pop colour of bricks from stack
-	lw	$a1, 4($sp)		# pop y coordinate of the top of the row
-	addi	$sp, $sp, 8
-
-	addi	$sp, $sp, -20
-	sw	$ra, 0($sp)		# push return address onto stack
-	sw	$s0, 4($sp)		# push old $s0 value onto stack
-	sw	$s1, 8($sp)		# push old $s1 value onto stack
-	sw	$s2, 12($sp)		# push old $s2 value onto stack
-	sw	$s3, 16($sp)		# push old $s3 value onto stack
-		
-	move	$s0, $a0		# store brick colour in $s0
-	move	$s1, $a1		# store y location of row in $s1
-	
-	li	$s2, 0			# initialize loop variable i = 0
-	lw	$t0, SCREEN_WIDTH	# load screen width
-	lw	$t1, WALL_WIDTH		# load wall width
-	lw	$t2, BRICK_DIM		# load brick width
-	mulo	$t1, $t1, 2
-	sub	$t0, $t0, $t1		# width of play space = screen width - 2 * wall width
-	div	$s3, $t0, $t2		# loop condition = number of bricks per row
-l2:	beq	$s2, $s3, n2
-	lw	$t0, BRICK_DIM		# load brick width
-	lw	$t1, WALL_WIDTH		# load wall width
-	mulo	$t0, $t0, $s2
-	add	$t0, $t0, $t1		# set x coordinate of brick = brick width * i + wall width
+	mulo	$t1, $t1, $t8
+	add	$t1, $t1, $t7		# x coordinate of (i, j) brick
+	mulo	$t2, $t2, $t9
+	add	$t2, $t2, $s0		# y coordinate of (i, j) brick
 	
 	addi	$sp, $sp, -12
-	sw	$s0, 0($sp)		# push brick colour onto stack
-	sw	$t0, 4($sp)		# push x coordinate onto stack
-	sw	$s1, 8($sp)		# push y coordinate onto stack
-	jal	draw_brick		# draw brick at (x, y)
+	sw	$t0, 0($sp)		# push brick colour onto stack
+	sw	$t1, 4($sp)		# push x coordinate onto stack
+	sw	$t2, 8($sp)		# push y coordinate onto stack
+	jal	draw_brick
 
-u2:	addi	$s2, $s2, 1		# i++
+u2:	addi	$s2, $s2, 1		# k++
 	j	l2
 
 n2:	lw	$ra, 0($sp)		# pop return address from stack
 	lw	$s0, 4($sp)		# pop old $s0 value from stack
 	lw	$s1, 8($sp)		# pop old $s1 value from stack
-	lw	$s2, 12($sp)		# pop old $s1 value from stack
-	lw	$s3, 16($sp)		# pop old $s1 value from stack
-	addi	$sp, $sp, 20
+	lw	$s2, 12($sp)		# pop old $s2 value on stack
+	addi	$sp, $sp, 16
 	jr	$ra			# return
 
 # parameters
