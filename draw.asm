@@ -42,7 +42,7 @@ BRICK_DIM:
 # Code
 ##############################################################################
 	.text
-	.globl draw_paddle draw_ball draw_walls draw_bricks
+	.globl draw_paddle draw_ball draw_walls draw_bricks move_ball delete_paddle delete_ball
 	j main
 
 # parameters
@@ -55,6 +55,33 @@ draw_paddle:
 	sw	$ra, 0($sp)		# push return address onto stack
 	
 	li	$t0, 0xaaaaaa		# set paddle colour
+	lw	$t1, 0($a0)		# load paddle x coordinate
+	lw	$t2, 4($a0)		# load paddle y coordinate
+	lw	$t3, PADDLE_DIM		# load paddle width
+	lw	$t4, PADDLE_DIM+4	# load paddle height
+	
+	addi	$sp, $sp, -20
+	sw	$t0, 0($sp)		# push colour onto stack
+	sw	$t1, 4($sp)		# push x coordinate onto stack
+	sw	$t2, 8($sp)		# push y coordinate onto stack
+	sw	$t3, 12($sp)		# push width onto stack
+	sw	$t4, 16($sp)		# push height onto stack
+	jal	draw_rectangle		# draw paddle at (x, y)
+	
+	lw	$ra, 0($sp)		# load return address from stack
+	addi	$sp, $sp, 4
+	jr	$ra			# return
+	
+# parameters
+#	coords - pointer to the (x, y) coordinate of the top left corner of the paddle
+delete_paddle: # same thing as draw_ball but colour is black
+	lw	$a0, 0($sp)		# ptr to paddle coordinates
+	addi	$sp, $sp, 4
+	
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+	li	$t0, 0x000000		# set paddle colour
 	lw	$t1, 0($a0)		# load paddle x coordinate
 	lw	$t2, 4($a0)		# load paddle y coordinate
 	lw	$t3, PADDLE_DIM		# load paddle width
@@ -97,6 +124,33 @@ draw_ball:
 	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
 	jr	$ra			# return
+
+# parameters
+#	coords - pointer to the (x, y) coordinate of the ball
+delete_ball:
+	lw	$a1, 0($sp)		# ptr to ball coordinates
+	lw	$a0, 0($a1)		# load ball x coordinate
+	lw	$a1, 4($a1)		# load ball y coordinate
+	addi	$sp, $sp, 8
+	
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+	li	$t0, 0x000000		# set ball colour
+	li	$t1, 1			# set ball width and height
+	
+	addi	$sp, $sp, -20
+	sw	$t0, 0($sp)		# push colour onto stack
+	sw	$a0, 4($sp)		# push x coordinate onto stack
+	sw	$a1, 8($sp)		# push y coordinate onto stack
+	sw	$t1, 12($sp)		# push width onto stack
+	sw	$t1, 16($sp)		# push height onto stack
+	jal	draw_rectangle		# draw ball at (x, y)
+	
+	lw	$ra, 0($sp)		# load return address from stack
+	addi	$sp, $sp, 4
+	jr	$ra			# return	
+
 
 # parameters
 #	y coordinate of the paddle (used to draw the coloured boundaries)

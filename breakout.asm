@@ -59,6 +59,7 @@ main:	lw	$t0, COLOURS
 	li	$t0, 0			# initialize loop variable i = 0
 	lw	$t1, BRICKS
 	sll	$t1, $t1, 2		# loop condition is number of rows * 4
+	
 l1:	beq	$t0, $t1, draw
 	li	$t2, 0			# initialize loop variable j = 0
 	lw	$t3, BRICKS+4
@@ -72,6 +73,7 @@ l2:	beq	$t2, $t3, u1
 	la	$t5, BRICKS($t5)	# pointer to (i, j) brick
 	lw	$t6, COLOURS+4($t0)	# load colour of ith row
 	sw	$t6, 0($t5)		# store colour of ith row in (i, j) brick
+	
 u2:	addi	$t2, $t2, 4		# j += 4
 	j	l2
 
@@ -103,16 +105,113 @@ draw:	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	sw	$t1, 4($sp)		# push ptr to array of colours onto stack
 	jal	draw_bricks
 
+move_ball:			# straight up
+	# Delete previous paddle
+	#lw	$t0, BALL_COORDS
+	#la	$t0, BALL_COORDS
+	#addi	$sp, $sp, -4
+	#sw	$t0, 0($sp)	
+	#jal	delete_ball
+	
+	#lw	$a0, BALL_COORDS
+	#addi	$t1, $a0, 1
+	#la	$a0, BALL_COORDS
+	#sw	$t1, 4($a0)
+	
+	#lw	$t0, BALL_COORDS
+	#la	$t0, BALL_COORDS
+	#addi	$sp, $sp, -4
+	#sw	$t0, 0($sp)		
+	#jal	draw_ball
+	
+	#b game_loop
+	#la	$t0, BALL_COORDS	# ptr to ball coordinates
+	#addi	$sp, $sp, -8
+	#sw	$t0, 0($sp)		# push ptr to ball coordinates onto stack
+	#jal	move_ball		# draw the ball on the center of the paddle
+		
+check_key:
+		li	$v0, 32		# 32 char
+		li	$a0, 1		# 1 char
+		syscall
+		
+	lw 	$t7, ADDR_KBRD          # $t0 = base address for keyboard
+    	lw 	$t4, 0($t7)             # Load first word from keyboard
+    	beq 	$t4, 1, key_in      	# If first word 1, key is pressed
+    	
+    	b game_loop
+
+key_in:	lw 	$a0, 4($t7)		# load input letter
+
+	beq 	$a0, 0x78, end		# exit when x pressed
+	beq 	$a0, 0x61, press_a	# move paddle left
+	beq 	$a0, 0x64, press_d	# move paddle right
+	
+	b game_loop
+
+press_a:
+	# delete previous paddle
+	lw	$t0, PADDLE_COORDS
+	la	$t0, PADDLE_COORDS
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)	
+	jal	delete_paddle
+	
+	# move paddle left
+	lw	$a0, PADDLE_COORDS
+	addi	$t1, $a0, -2
+	la	$a0, PADDLE_COORDS
+	sw	$t1, 0($a0)
+	
+	# draw paddle
+	lw	$t0, PADDLE_COORDS
+	la	$t0, PADDLE_COORDS
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)		
+	jal	draw_paddle
+	
+	b game_loop	
+
+press_d:
+	# delete previous paddle
+	lw	$t0, PADDLE_COORDS
+	la	$t0, PADDLE_COORDS
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)	
+	jal	delete_paddle
+	
+	# move paddle right
+	lw	$a0, PADDLE_COORDS
+	addi	$t1, $a0, 2
+	la	$a0, PADDLE_COORDS
+	sw	$t1, 0($a0)
+	
+	# draw paddle
+	lw	$t0, PADDLE_COORDS
+	la	$t0, PADDLE_COORDS
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)	
+	jal	draw_paddle
+	
+	b game_loop	
+
+
 game_loop:
-	j	end
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
+    	#j move_ball
+    	j check_key
+    	j key_in
+    	j press_a
+    	j press_d
+    	
 	# 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
+	
 	# 3. Draw the screen
 	# 4. Sleep
 
-    #5. Go back to 1
+    	#5. Go back to 1
 	b	game_loop
 	
 end:	li	$v0, 10 
