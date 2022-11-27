@@ -192,7 +192,7 @@ ball_change:
 	la	$a1, BALL_COORDS	# load address of ball coordinates
 	addi	$sp, $sp, -4		# allocate memory
 	sw	$a1, 0($sp)		# push previous ball coordinates onto stack
-	jal 	draw_ball		# draw new ball
+	#jal 	draw_ball		# draw new ball
 	
 	## temporary, manually change direction
 	li	$t3, 1			# northeast
@@ -220,6 +220,14 @@ key_in:	lw 	$a0, 4($t7)		# load input letter
 	b game_loop
 
 press_a:
+	lw	$a0, PADDLE_COORDS	# load paddle coordinates
+	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
+	  
+	addi	$sp, $sp, -4
+	sw	$t1, 0($sp)
+	jal left_paddle_col
+	
+	
 	# delete previous paddle
 	la	$t0, PADDLE_COORDS	# load paddle coordinate address
 	addi	$sp, $sp, -4		# allocate memory
@@ -228,11 +236,9 @@ press_a:
 	
 	# move paddle left (new position)
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -5		# create new paddle position (2 units left)  
+	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
 	la	$a0, PADDLE_COORDS	# load paddle coordinate address
 	sw	$t1, 0($a0)		# save new x coordinate
-	
-	#jal	
 	
 	# draw paddle		
 	la	$t0, PADDLE_COORDS	# load paddle address
@@ -243,6 +249,13 @@ press_a:
 	b game_loop	
 
 press_d:
+	lw	$a0, PADDLE_COORDS	# load paddle coordinates
+	addi	$t1, $a0, 1		# create new paddle position (2 units left) 
+	  
+	addi	$sp, $sp, -4
+	sw	$t1, 0($sp)
+	jal right_paddle_col
+
 	# delete previous paddle
 	la	$t0, PADDLE_COORDS	# load paddle coordinate address
 	addi	$sp, $sp, -4		# allocate memory
@@ -251,7 +264,7 @@ press_d:
 	
 	# move paddle right
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 5		# create new paddle position (2 units left)  
+	addi	$t1, $a0, 1		# create new paddle position (2 units left)  
 	la	$a0, PADDLE_COORDS	# load paddle coordinate address
 	sw	$t1, 0($a0)		# save new x coordinate
 	
@@ -267,8 +280,8 @@ press_d:
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	j move_ball
-    	j ball_change
+    	#j move_ball
+    	#j ball_change
     	j check_key
     	j key_in
     	j press_a
@@ -283,7 +296,34 @@ game_loop:
     	#5. Go back to 1
 	b	game_loop
 	
-check_paddle_col:
+left_paddle_col:
+	lw	$t0, 0($sp)			# load next paddle position
+	
+	li	$t1, 4				# load left wall boundary
+	
+	addi	$sp, $sp, -4			# allocate memory
+	sw	$ra, 0($sp)			# push return address onto stack
+	
+	bge	$t0, $t1, valid_col_check	# left wall check
+	
+	j check_key
+
+right_paddle_col:
+	lw	$t0, 0($sp)			# load next paddle position
+		
+	li	$t1, 111			# load right wall boundary
+	
+	addi	$sp, $sp, -4			# allocate memory
+	sw	$ra, 0($sp)			# push return address onto stack
+	
+	ble	$t0, $t1, valid_col_check	# right wall check
+	
+	j check_key
+
+valid_col_check:
+	lw	$ra, 0($sp)		# load return address from stack
+	addi	$sp, $sp, 4
+	jr	$ra			# return
 	
 	
 end:	li	$v0, 10 
