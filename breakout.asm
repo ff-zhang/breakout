@@ -59,12 +59,10 @@ main:	lw	$t0, COLOURS
 	li	$t0, 0			# initialize loop variable i = 0
 	lw	$t1, BRICKS
 	sll	$t1, $t1, 2		# loop condition is number of rows * 4
-	
 l1:	beq	$t0, $t1, draw
 	li	$t2, 0			# initialize loop variable j = 0
 	lw	$t3, BRICKS+4
 	sll	$t3, $t3, 2		# loop condition is number of bricks per row
-
 l2:	beq	$t2, $t3, u1
 	mulo	$t5, $t0, $t3
 	srl	$t5, $t5, 2		# $t5 = $t5 // 4
@@ -105,31 +103,103 @@ draw:	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	sw	$t1, 4($sp)		# push ptr to array of colours onto stack
 	jal	draw_bricks
 
-move_ball:			# straight up
-	# Delete previous paddle
-	#lw	$t0, BALL_COORDS
-	#la	$t0, BALL_COORDS
-	#addi	$sp, $sp, -4
-	#sw	$t0, 0($sp)	
-	#jal	delete_ball
+game_start:
+	# implement start when paddle is moved
 	
-	#lw	$a0, BALL_COORDS
-	#addi	$t1, $a0, 1
-	#la	$a0, BALL_COORDS
-	#sw	$t1, 4($a0)
+	# TODO: randomly choose this next time
+	li	$t0, -1			# goes up
 	
-	#lw	$t0, BALL_COORDS
-	#la	$t0, BALL_COORDS
-	#addi	$sp, $sp, -4
-	#sw	$t0, 0($sp)		
-	#jal	draw_ball
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)		# push direction onto stack
+
+move_ball:
+	lw	$a0, 0($sp)		# pop direction from stack
+	addi	$sp, $sp, 4
 	
-	#b game_loop
-	#la	$t0, BALL_COORDS	# ptr to ball coordinates
-	#addi	$sp, $sp, -8
-	#sw	$t0, 0($sp)		# push ptr to ball coordinates onto stack
-	#jal	move_ball		# draw the ball on the center of the paddle
-		
+	beq	$a0, 0, move_N		# ball goes straight up
+	
+	beq	$a0, -1, move_NW	# ball goes northwest
+	
+	beq	$a0, 1, move_NE		# ball goes northeast
+	
+	b game_loop
+
+move_N:
+	lw	$t1, BALL_COORDS	# load x coordinate of ball
+	lw	$t2, BALL_COORDS+4	# load x coordinate of ball
+	
+	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)
+	
+	li	$t3, 0			# load direction as immediate
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$t3, 0($sp)		# push direction onto stack
+	
+	j check_collision		# checks for collision
+
+move_NW:
+	lw	$t1, BALL_COORDS	# load x coordinate of ball
+	lw	$t2, BALL_COORDS+4	# load x coordinate of ball
+	
+	addi	$t1, $t1, -1		# decrease x coordinate by 1 (ball goes left)
+	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)
+	
+	li	$t3, -1			# load direction as immediate
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$t3, 0($sp)		# push direction onto stack
+	
+	j check_collision		# checks for collision
+
+move_NE:
+	lw	$t1, BALL_COORDS	# load x coordinate of ball
+	lw	$t2, BALL_COORDS+4	# load x coordinate of ball
+	
+	addi	$t1, $t1, 1		# decrease x coordinate by 1 (ball goes right)
+	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)
+	
+	li	$t3, 1			# load direction as immediate
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$t3, 0($sp)		# push direction onto stack
+	
+	j check_collision		# checks for collision
+
+check_collision:
+	# checks for collision, x and y
+	# beq collision
+	
+	# beq no collision
+	j ball_change
+
+ball_change:
+	li $v0, 32
+	li $a0, 60		# ms delay
+	syscall
+	
+	#lw	$t0, 0($sp)
+	#addi	$sp, $sp, 4		# allocate memory
+			
+	
+	la	$a1, BALL_COORDS	# load address of ball coordinates
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$a1, 0($sp)		# push previous ball coordinates onto stack
+	#jal 	delete_ball
+	
+	
+	# la	$a1, BALL_COORDS	# load address of ball coordinates
+	la	$a1, BALL_COORDS	# load address of ball coordinates
+	sw	$t1, 0($a1)		# save z coordinate of ball
+	sw	$t2, 4($a1)		# save y coordinate of ball
+	
+	la	$a1, BALL_COORDS	# load address of ball coordinates
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$a1, 0($sp)		# push previous ball coordinates onto stack
+	jal 	draw_ball		# draw new ball
+	
+	## temporary, manually change direction
+	li	$t3, 1			# northeast
+	
+	addi	$sp, $sp, -4
+	sw	$t3, 0($sp)		# push direction onto stack
+	
 check_key:
 		li	$v0, 32		# 32 char
 		li	$a0, 1		# 1 char
@@ -151,47 +221,45 @@ key_in:	lw 	$a0, 4($t7)		# load input letter
 
 press_a:
 	# delete previous paddle
-	lw	$t0, PADDLE_COORDS
-	la	$t0, PADDLE_COORDS
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)	
-	jal	delete_paddle
+	la	$t0, PADDLE_COORDS	# load paddle coordinate address
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$t0, 0($sp)		# push x coordinate onto stack
+	jal	delete_paddle		# delete paddle (paint past paddle position black)
 	
-	# move paddle left
-	lw	$a0, PADDLE_COORDS
-	addi	$t1, $a0, -2
-	la	$a0, PADDLE_COORDS
-	sw	$t1, 0($a0)
+	# move paddle left (new position)
+	lw	$a0, PADDLE_COORDS	# load paddle coordinates
+	addi	$t1, $a0, -5		# create new paddle position (2 units left)  
+	la	$a0, PADDLE_COORDS	# load paddle coordinate address
+	sw	$t1, 0($a0)		# save new x coordinate
 	
-	# draw paddle
-	lw	$t0, PADDLE_COORDS
-	la	$t0, PADDLE_COORDS
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)		
-	jal	draw_paddle
+	#jal	
+	
+	# draw paddle		
+	la	$t0, PADDLE_COORDS	# load paddle address
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$t0, 0($sp)		# push x coordinate onto stack
+	jal	draw_paddle		# draw new paddle (in new position)
 	
 	b game_loop	
 
 press_d:
 	# delete previous paddle
-	lw	$t0, PADDLE_COORDS
-	la	$t0, PADDLE_COORDS
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)	
-	jal	delete_paddle
+	la	$t0, PADDLE_COORDS	# load paddle coordinate address
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$t0, 0($sp)		# push x coordinate onto stack
+	jal	delete_paddle		# delete paddle (paint past paddle position black)
 	
 	# move paddle right
-	lw	$a0, PADDLE_COORDS
-	addi	$t1, $a0, 2
-	la	$a0, PADDLE_COORDS
-	sw	$t1, 0($a0)
+	lw	$a0, PADDLE_COORDS	# load paddle coordinates
+	addi	$t1, $a0, 5		# create new paddle position (2 units left)  
+	la	$a0, PADDLE_COORDS	# load paddle coordinate address
+	sw	$t1, 0($a0)		# save new x coordinate
 	
-	# draw paddle
-	lw	$t0, PADDLE_COORDS
-	la	$t0, PADDLE_COORDS
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)	
-	jal	draw_paddle
+	# draw paddle		
+	la	$t0, PADDLE_COORDS	# load paddle address
+	addi	$sp, $sp, -4		# allocate memory
+	sw	$t0, 0($sp)		# push x coordinate onto stack
+	jal	draw_paddle		# draw new paddle (in new position)
 	
 	b game_loop	
 
@@ -199,7 +267,8 @@ press_d:
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	#j move_ball
+    	j move_ball
+    	j ball_change
     	j check_key
     	j key_in
     	j press_a
@@ -213,6 +282,9 @@ game_loop:
 
     	#5. Go back to 1
 	b	game_loop
+	
+check_paddle_col:
+	
 	
 end:	li	$v0, 10 
 	syscall				# exit program gracefully
