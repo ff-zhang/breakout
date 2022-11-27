@@ -107,7 +107,7 @@ game_start:
 	# implement start when paddle is moved
 	
 	# TODO: randomly choose this next time
-	li	$t0, -1			# goes up
+	li	$t0, 1			# goes up
 	
 	addi	$sp, $sp, -4
 	sw	$t0, 0($sp)		# push direction onto stack
