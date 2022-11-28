@@ -18,6 +18,7 @@
 # The address of the bitmap display. Don't forget to connect it!
 ADDR_DSPL:
 	.word	0x10008000
+
 # The address of the keyboard. Don't forget to connect it!
 ADDR_KBRD:
 	.word	0xffff0000
@@ -26,23 +27,21 @@ ADDR_KBRD:
 # Mutable Data
 ##############################################################################
 # (x, y) coordinates of the top left corner of the paddle
-PADDLE_COORDS:
-	.word	57, 55
+.extern	PADDLE_COORDS	64	# size of two words
 
 # (x, y) coordinates of the ball
-BALL_COORDS:
-	.word	63, 0
+.extern BALL_COORDS	64	# size of two words
+
+# y coordinate of the top of the first row of bricks
+.extern	BRICKS_Y	32	# size of one word
 	
 # 2-D array storing colour of each brick
-BRICKS:	.space	368			# (number of rows * number of bricks per row + 2) * bytes per word
+.extern BRICKS		368			# (number of rows * number of bricks per row + 2) * bytes per word
 
 # array describing colour of each row, from top to bottom
 COLOURS:				# require A[0] = A.length - 1
 	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
 
-# y coordinate of the top of the first row of bricks
-BRICKS_Y:
-	.word	12			# y coordinate of top row
 
 ##############################################################################
 # Code
@@ -50,22 +49,37 @@ BRICKS_Y:
 	.text
 	.globl	main
 	
-	# Run the Brick Breaker game.
-main:	lw	$t0, COLOURS
-	sw	$t0, BRICKS		# store number of rows in BRICKS[0]
-	li	$t0, 15
-	sw	$t0, BRICKS+4		# store number of bricks per row in BRICKS[1]
+initialize:
+	li	$t0, 57
+	li	$t1, 55
+	sw	$t0, PADDLE_COORDS	# paddle x s.t. it is in the center of the scrren
+	sw	$t1, PADDLE_COORDS+4
 	
+	li	$t0, 63
+	sw	$t0, BALL_COORDS
+	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
+	addi	$t0, $t0, -1
+	sw	$t0, BALL_COORDS+4	# ball initially starts on top the paddle
+	
+	li	$t0, 12
+	sw	$t0, BRICKS_Y
+
+	lw	$t0, COLOURS
+	li	$t1, 15
+	sw	$t0, BRICKS		# store the number of bricks in BRICKS[0]
+	sw	$t1, BRICKS+4		# store the number of bricks per row in BRICKS[1]
+	
+	# initializes the colour of each brick
 	li	$t0, 0			# initialize loop variable i = 0
 	lw	$t1, BRICKS
 	sll	$t1, $t1, 2		# loop condition is number of rows * 4
-l1:	beq	$t0, $t1, draw
+l1:	beq	$t0, $t1, e1
 	li	$t2, 0			# initialize loop variable j = 0
 	lw	$t3, BRICKS+4
 	sll	$t3, $t3, 2		# loop condition is number of bricks per row
 l2:	beq	$t2, $t3, u1
 	mulo	$t5, $t0, $t3
-	srl	$t5, $t5, 2		# $t5 = $t5 // 4
+	sra	$t5, $t5, 2		# $t5 = $t5 // 4
 	add	$t5, $t2, $t5
 	addi	$t5, $t5, 8		# index of (i, j) brick in BRICKS * 4
 	la	$t5, BRICKS($t5)	# pointer to (i, j) brick
@@ -77,19 +91,12 @@ u2:	addi	$t2, $t2, 4		# j += 4
 
 u1:	addi	$t0, $t0, 4		# i += 4
 	j	l1
-
-draw:	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
-	addi	$t0, $t0, -1
-	sw	$t0, BALL_COORDS+4	# ball initially starts on top the paddle
-
-	la	$t0, PADDLE_COORDS	# ptr to paddle coordinates
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)		# push paddle coordinates onto stack
-	jal	draw_paddle		# draw paddle in the center of the screen
 	
-	la	$t0, BALL_COORDS	# ptr to ball coordinates
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)		# push ptr to ball coordinates onto stack
+e1:	j	main
+	
+	# Run the Brick Breaker game.
+main:	jal	draw_paddle		# draw paddle in the center of the screen
+	
 	jal	draw_ball		# draw the ball on the center of the paddle
 	
 	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
@@ -97,10 +104,6 @@ draw:	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	sw	$t0, 0($sp)		# push paddle y coordinate onto stack
 	jal	draw_walls		# draw the walls around the play area
 	
-	lw	$t0, BRICKS_Y		# load y coordinate of first row of bricks
-	la	$t1, BRICKS		# get ptr to array describing colour of each brick
-	sw	$t0, 0($sp)		# push y coordinate of top row onto stack
-	sw	$t1, 4($sp)		# push ptr to array of colours onto stack
 	jal	draw_bricks
 
 game_start:
@@ -111,56 +114,6 @@ game_start:
 	
 	addi	$sp, $sp, -4
 	sw	$t0, 0($sp)		# push direction onto stack
-
-move_ball:
-	lw	$a0, 0($sp)		# pop direction from stack
-	addi	$sp, $sp, 4
-	
-	beq	$a0, 0, move_N		# ball goes straight up
-	
-	beq	$a0, -1, move_NW	# ball goes northwest
-	
-	beq	$a0, 1, move_NE		# ball goes northeast
-	
-	b game_loop
-
-move_N:
-	lw	$t1, BALL_COORDS	# load x coordinate of ball
-	lw	$t2, BALL_COORDS+4	# load x coordinate of ball
-	
-	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)
-	
-	li	$t3, 0			# load direction as immediate
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t3, 0($sp)		# push direction onto stack
-	
-	j check_collision		# checks for collision
-
-move_NW:
-	lw	$t1, BALL_COORDS	# load x coordinate of ball
-	lw	$t2, BALL_COORDS+4	# load x coordinate of ball
-	
-	addi	$t1, $t1, -1		# decrease x coordinate by 1 (ball goes left)
-	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)
-	
-	li	$t3, -1			# load direction as immediate
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t3, 0($sp)		# push direction onto stack
-	
-	j check_collision		# checks for collision
-
-move_NE:
-	lw	$t1, BALL_COORDS	# load x coordinate of ball
-	lw	$t2, BALL_COORDS+4	# load x coordinate of ball
-	
-	addi	$t1, $t1, 1		# decrease x coordinate by 1 (ball goes right)
-	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)
-	
-	li	$t3, 1			# load direction as immediate
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t3, 0($sp)		# push direction onto stack
-	
-	j check_collision		# checks for collision
 
 check_collision:
 	# checks for collision, x and y
@@ -184,7 +137,6 @@ ball_change:
 	#jal 	delete_ball
 	
 	
-	# la	$a1, BALL_COORDS	# load address of ball coordinates
 	la	$a1, BALL_COORDS	# load address of ball coordinates
 	sw	$t1, 0($a1)		# save z coordinate of ball
 	sw	$t2, 4($a1)		# save y coordinate of ball

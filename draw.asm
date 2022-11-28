@@ -21,16 +21,22 @@ ADDR_DSPL:
 # The address of the keyboard. Don't forget to connect it!
 ADDR_KBRD:
 	.word	0xffff0000
-	
+
 SCREEN_WIDTH:
 	.word	128		# display width in pixels divided by unit width in pixels
-	
+
 PADDLE_DIM:
 	.word	13, 1
-	
+
+PADDLE_COLOUR:
+	.word	0xaaaaaa
+
 WALL_WIDTH:
 	.word	4
-	
+
+BALL_COLOUR:
+	.word	0xffffff
+
 BUFFER_HEIGHT:
 	.word	5
 
@@ -42,21 +48,17 @@ BRICK_DIM:
 # Code
 ##############################################################################
 	.text
-	.globl draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball
-	j main
+	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball
 
 # parameters
 #	coords - pointer to the (x, y) coordinate of the top left corner of the paddle
 draw_paddle:
-	lw	$a0, 0($sp)		# ptr to paddle coordinates
-	addi	$sp, $sp, 4
-	
 	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)		# push return address onto stack
 	
-	li	$t0, 0xaaaaaa		# set paddle colour
-	lw	$t1, 0($a0)		# load paddle x coordinate
-	lw	$t2, 4($a0)		# load paddle y coordinate
+	lw	$t0, PADDLE_COLOUR	# load paddle colour
+	lw	$t1, PADDLE_COORDS	# load paddle x coordinate
+	lw	$t2, PADDLE_COORDS+4	# load paddle y coordinate
 	lw	$t3, PADDLE_DIM		# load paddle width
 	lw	$t4, PADDLE_DIM+4	# load paddle height
 	
@@ -74,61 +76,24 @@ draw_paddle:
 	
 # parameters
 #	coords - pointer to the (x, y) coordinate of the top left corner of the paddle
-delete_paddle: # same thing as draw_ball but colour is black
-	lw	$a0, 0($sp)		# ptr to paddle coordinates
-	addi	$sp, $sp, 4
-	
-	addi	$sp, $sp, -4
+delete_paddle:				# same thing as draw_paddle but colour is black
+	addi	$sp, $sp, -8
 	sw	$ra, 0($sp)		# push return address onto stack
+	lw	$t0, PADDLE_COLOUR
+	sw	$t0, 4($sp)		# push paddle colour onto stack
 	
-	li	$t0, 0x000000		# set paddle colour
-	lw	$t1, 0($a0)		# load paddle x coordinate
-	lw	$t2, 4($a0)		# load paddle y coordinate
-	lw	$t3, PADDLE_DIM		# load paddle width
-	lw	$t4, PADDLE_DIM+4	# load paddle height
-	
-	addi	$sp, $sp, -20
-	sw	$t0, 0($sp)		# push colour onto stack
-	sw	$t1, 4($sp)		# push x coordinate onto stack
-	sw	$t2, 8($sp)		# push y coordinate onto stack
-	sw	$t3, 12($sp)		# push width onto stack
-	sw	$t4, 16($sp)		# push height onto stack
-	jal	draw_rectangle		# draw paddle at (x, y)
+	li	$t0, 0
+	sw	$t0, PADDLE_COLOUR
+	jal	draw_paddle		# colour the paddle black
 	
 	lw	$ra, 0($sp)		# load return address from stack
-	addi	$sp, $sp, 4
-	jr	$ra			# return
-	
-# parameters
-#	coords - pointer to the (x, y) coordinate of the ball
-delete_ball:
-	lw	$a1, 0($sp)		# ptr to ball coordinates
-	lw	$a0, 0($a1)		# load ball x coordinate
-	lw	$a1, 4($a1)		# load ball y coordinate
 	addi	$sp, $sp, 8
-	
-	addi	$sp, $sp, -4
-	sw	$ra, 0($sp)		# push return address onto stack
-	
-	li	$t0, 0x000000		# set ball colour
-	li	$t1, 1			# set ball width and height
-	
-	addi	$sp, $sp, -20
-	sw	$t0, 0($sp)		# push colour onto stack
-	sw	$a0, 4($sp)		# push x coordinate onto stack
-	sw	$a1, 8($sp)		# push y coordinate onto stack
-	sw	$t1, 12($sp)		# push width onto stack
-	sw	$t1, 16($sp)		# push height onto stack
-	jal	draw_rectangle		# draw ball at (x, y)
-	
-	lw	$ra, 0($sp)		# load return address from stack
-	addi	$sp, $sp, 4
 	jr	$ra			# return
 
 # parameters
 #	coords - pointer to the (x, y) coordinate of the ball
 draw_ball:
-	lw	$a1, 0($sp)		# ptr to ball coordinates
+	la	$a1, 0($sp)		# ptr to ball coordinates
 	lw	$a0, 0($a1)		# load ball x coordinate
 	lw	$a1, 4($a1)		# load ball y coordinate
 	addi	$sp, $sp, 8
@@ -136,7 +101,7 @@ draw_ball:
 	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)		# push return address onto stack
 	
-	li	$t0, 0xffffff		# set ball colour
+	lw	$t0, BALL_COLOUR	# load ball colour
 	li	$t1, 1			# set ball width and height
 	
 	addi	$sp, $sp, -20
@@ -149,13 +114,30 @@ draw_ball:
 	
 	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
+	jr	$ra			# return
+
+
+# parameters
+#	coords - pointer to the (x, y) coordinate of the ball
+delete_ball:
+	addi	$sp, $sp, -8
+	sw	$ra, 0($sp)		# push return address onto stack
+	lw	$t0, BALL_COLOUR
+	sw	$t0, 4($sp)		# push ball colour onto stack
+	
+	li	$t0, 0
+	sw	$t0, BALL_COLOUR
+	jal	draw_paddle		# colour the ball black
+	
+	lw	$ra, 0($sp)		# load return address from stack
+	addi	$sp, $sp, 8
 	jr	$ra			# return
 
 
 # parameters
 #	y coordinate of the paddle (used to draw the coloured boundaries)
 draw_walls:
-	lw	$a0, 0($sp)		# pop paddle y coordinate from stack
+	lw	$a0, PADDLE_COORDS+4	# get paddle y coordinate
 	addi	$sp, $sp, 4
 	
 	addi	$sp, $sp, -16
@@ -229,9 +211,8 @@ draw_walls:
 #	y - y coordinate of the top of the first row of bricks
 #	colours - pointer to array of row colours, ordered top to bottom
 draw_bricks:
-	lw	$a0, 0($sp)		# pop y coordinate of top row from stack
-	lw	$a1, 4($sp)		# pop ptr to array of colours from stack
-	addi	$sp, $sp, 8
+	lw	$a0, BRICKS_Y		# pop y coordinate of top row from stack
+	la	$a1, BRICKS		# pop ptr to array of colours from stack
 	
 	addi	$sp, $sp, -16
 	sw	$ra, 0($sp)		# push return address onto stack
