@@ -92,7 +92,7 @@ u2:	addi	$t2, $t2, 4		# j += 4
 u1:	addi	$t0, $t0, 4		# i += 4
 	j	l1
 	
-e1:	j	main
+e1:	j	main	
 	
 	# Run the Brick Breaker game.
 main:	jal	draw_paddle		# draw paddle in the center of the screen
@@ -104,7 +104,7 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 	sw	$t0, 0($sp)		# push paddle y coordinate onto stack
 	jal	draw_walls		# draw the walls around the play area
 	
-	jal	draw_bricks
+	# jal	draw_bricks
 
 game_start:
 	# implement start when paddle is moved
@@ -120,37 +120,6 @@ check_collision:
 	# beq collision
 	
 	# beq no collision
-	j ball_change
-
-ball_change:
-	li $v0, 32
-	li $a0, 60		# ms delay
-	syscall
-	
-	#lw	$t0, 0($sp)
-	#addi	$sp, $sp, 4		# allocate memory
-			
-	
-	la	$a1, BALL_COORDS	# load address of ball coordinates
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$a1, 0($sp)		# push previous ball coordinates onto stack
-	#jal 	delete_ball
-	
-	
-	la	$a1, BALL_COORDS	# load address of ball coordinates
-	sw	$t1, 0($a1)		# save z coordinate of ball
-	sw	$t2, 4($a1)		# save y coordinate of ball
-	
-	la	$a1, BALL_COORDS	# load address of ball coordinates
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$a1, 0($sp)		# push previous ball coordinates onto stack
-	#jal 	draw_ball		# draw new ball
-	
-	## temporary, manually change direction
-	li	$t3, 1			# northeast
-	
-	addi	$sp, $sp, -4
-	sw	$t3, 0($sp)		# push direction onto stack
 	
 check_key:
 		li	$v0, 32		# 32 char
@@ -232,8 +201,7 @@ press_d:
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	#j move_ball
-    	#j ball_change
+    	jal update_ball
     	j check_key
     	j key_in
     	j press_a
@@ -243,7 +211,11 @@ game_loop:
 	# 2b. Update locations (paddle, ball)
 	
 	# 3. Draw the screen
+	
 	# 4. Sleep
+	li $v0, 32
+	li $a0, 60		# ms delay
+	syscall
 
     	#5. Go back to 1
 	b	game_loop

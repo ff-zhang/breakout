@@ -1,16 +1,3 @@
-################ CSC258H1F Fall 2022 Assembly Final Project ##################
-# This file contains our implementation of Breakout.
-#
-# Student 1: Name, Student Number
-# Student 2: Name, Student Number
-######################## Bitmap Display Configuration ########################
-# - Unit width in pixels:       4
-# - Unit height in pixels:      4
-# - Display width in pixels:    512
-# - Display height in pixels:   256
-# - Base Address for Display:   0x10008000 ($gp)
-##############################################################################
-
 	.data
 ##############################################################################
 # Immutable Data
@@ -93,10 +80,8 @@ delete_paddle:				# same thing as draw_paddle but colour is black
 # parameters
 #	coords - pointer to the (x, y) coordinate of the ball
 draw_ball:
-	la	$a1, 0($sp)		# ptr to ball coordinates
-	lw	$a0, 0($a1)		# load ball x coordinate
-	lw	$a1, 4($a1)		# load ball y coordinate
-	addi	$sp, $sp, 8
+	lw	$a0, BALL_COORDS	# load ball x coordinate
+	lw	$a1, BALL_COORDS+4	# load ball y coordinate
 	
 	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)		# push return address onto stack
@@ -127,9 +112,11 @@ delete_ball:
 	
 	li	$t0, 0
 	sw	$t0, BALL_COLOUR
-	jal	draw_paddle		# colour the ball black
+	jal	draw_ball		# colour the ball black
 	
 	lw	$ra, 0($sp)		# load return address from stack
+	lw	$t0, 4($sp)
+	sw	$t0, BALL_COLOUR	# restore original ball colour
 	addi	$sp, $sp, 8
 	jr	$ra			# return
 
