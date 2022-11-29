@@ -263,10 +263,6 @@ draw_brick:
 	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$a0, 0($sp)		# push brick colour on stack
-	# sw	$a1, 4($sp)		# push x coordinate onto stack
-	# sw	$a2, 8($sp)		# push y coordinate onto stack
-	# sw	$t0, 12($sp)		# push width onto stack
-	# sw	$t1, 16($sp)		# push height onto stack
 	move	$a0, $a1
 	move	$a1, $a2
 	move	$a2, $t0
@@ -283,7 +279,10 @@ delete_brick:
 	lw	$a1, 4($sp)		# pop j from stack
 	addi	$sp, $sp, 8
 	
-	lw	$t0, BRICKS
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)
+	
+	la	$t0, BRICKS
 	addi	$t0, $t0, 8		# ptr to first brick colour element of array
 	
 	lw	$t6, BRICKS_Y
@@ -294,7 +293,6 @@ delete_brick:
 	mulo	$t1, $a0, $t8
 	add	$t1, $t1, $t7		# x coordinate of (i, j) brick
 	mulo	$t2, $a1, $t9
-	add	$t2, $t2, $s0		
 	add	$t2, $t2, $t6		# y coordinate of (i, j) brick
 	
 	# update brick colour to black (0x000000)
@@ -305,6 +303,10 @@ delete_brick:
 	sw	$t1, 4($sp)		# push x coordinate onto stack
 	sw	$t2, 8($sp)		# push y coordinate onto stack
 	jal	draw_brick
+	
+	lw	$ra, 0($sp)
+	addi	$sp, $sp, 4
+	jr	$ra	
 
 # parameters
 #	colour - colour of the rectangle to draw

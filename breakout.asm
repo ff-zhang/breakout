@@ -127,11 +127,8 @@ e1:	j	main
 	
 	# Run the Brick Breaker game.
 main:	jal	draw_paddle		# draw paddle in the center of the screen
-	
 	jal	draw_ball		# draw the ball on the center of the paddle
-	
 	jal	draw_walls		# draw the walls around the play area
-	
 	jal	draw_bricks	
 
 

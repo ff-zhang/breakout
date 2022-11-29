@@ -152,7 +152,7 @@ move_NW:
 
 move_NE:
 	addi	$t1, $t1, 1		# decrease x coordinate by 1 (ball goes right)
-	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)\
+	addi	$t2, $t2, -1		# decrease y coordinate by 1 (ball goes up)
 	j	c1
 	
 c1:	addi	$sp, $sp, -8
