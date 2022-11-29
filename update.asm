@@ -14,30 +14,32 @@ ADDR_KBRD:
 # Code
 ##############################################################################
 	.text
-	.globl	update_ball get_key check_collision
+	.globl	update_ball get_key check_collision key_in
 
 end:	li	$v0, 10 
 	syscall
 	
 get_key:
-	li	$v0, 12			# 32 char
-	# li	$a0, 1			# 1 char
+	li	$v0, 32			# 32 char
+	li	$a0, 1			# 1 char
 	syscall
 		
 	lw 	$t9, ADDR_KBRD          # $t0 = base address for keyboard
     	lw 	$t4, 0($t9)             # Load first word from keyboard
     	beq 	$t4, 1, key_in      	# If first word 1, key is pressed
     	
-    	jr	$ra
+    	#jr	$ra
+    	b 	game_loop
+  
 
-key_in:	lw 	$a0, 4($t7)		# load input letter
+key_in:	lw 	$a0, 4($t9)		# load input letter
 
 	beq 	$a0, 0x78, end		# exit when x pressed
-	beq 	$a0, 0x71, end		# exit when q pressed
-	# beq 	$a0, 0x61, press_a	# move paddle left
-	# beq 	$a0, 0x64, press_d	# move paddle right
+	#beq 	$a0, 0x71, end		# exit when q pressed
+	beq 	$a0, 0x61, press_a	# move paddle left
+	beq 	$a0, 0x64, press_d	# move paddle right
 	
-	jr	$ra
+	b	game_loop
 
 
 check_collision:

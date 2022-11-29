@@ -34,6 +34,11 @@ ADDR_KBRD:
 # (width, height)
 .extern	BRICK_DIM	64
 
+# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
+WALLS_X:
+	.word	4, 111
+
+
 ##############################################################################
 # Mutable Data
 ##############################################################################
@@ -59,7 +64,7 @@ COLOURS:				# require A[0] = A.length - 1
 # Code
 ##############################################################################
 	.text
-	.globl	main
+	.globl	main press_a press_d game_loop
 	
 initialize:
 	li	$t0, 57
@@ -134,39 +139,6 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 	
 	jal	draw_bricks	
 
-
-game_loop:
-	# 1a. Check if key has been pressed
-    	# 1b. Check which key has been pressed
-    	# jal get_key
-    	# j press_a
-    	# j press_d
-    	
-	# 2a. Check for collisions
-	# 2b. Update locations (paddle, ball)
-	jal check_collision
-    	jal update_ball
-	
-	# 4. Sleep
-	li $v0, 32
-	li $a0, 60		# add ms delay
-	syscall
-
-    	#5. Go back to 1
-	b	game_loop
-
-end:	li	$v0, 10 
-	syscall				# exit program gracefully
-
-game_start:
-	# implement start when paddle is moved
-	
-	# TODO: randomly choose this next time
-	li	$t0, 1			# goes up
-	
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)		# push direction onto stack
-
 press_a:
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
 	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
@@ -223,30 +195,63 @@ press_d:
 	jal	draw_paddle		# draw new paddle (in new position)
 	
 	b game_loop
+
+game_loop:
+	# 1a. Check if key has been pressed
+    	# 1b. Check which key has been pressed
+    	j get_key
+    	j key_in
+    	j press_a
+    	j press_d
+    	
+	# 2a. Check for collisions
+	# 2b. Update locations (paddle, ball)
+	jal check_collision
+    	jal update_ball
+	
+	# 4. Sleep
+	li $v0, 32
+	li $a0, 60		# add ms delay
+	syscall
+
+    	#5. Go back to 1
+	b	game_loop
+
+end:	li	$v0, 10 
+	syscall				# exit program gracefully
+
+game_start:
+	# implement start when paddle is moved
+	
+	# TODO: randomly choose this next time
+	li	$t0, 1				# goes up
+	
+	addi	$sp, $sp, -4
+	sw	$t0, 0($sp)			# push direction onto stack
 	
 left_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
 	
-	li	$t1, 4				# load left wall boundary
+	lw	$t1, WALLS_X			# load left wall boundary
 	
 	addi	$sp, $sp, -4			# allocate memory
 	sw	$ra, 0($sp)			# push return address onto stack
 	
 	bge	$t0, $t1, valid_col_check	# left wall check
 	
-	# j check_key
+	j get_key
 
 right_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
 		
-	li	$t1, 111			# load right wall boundary
+	lw	$t1, WALLS_X+4			# load right wall boundary
 	
 	addi	$sp, $sp, -4			# allocate memory
 	sw	$ra, 0($sp)			# push return address onto stack
 	
 	ble	$t0, $t1, valid_col_check	# right wall check
 	
-	# j check_key
+	j get_key
 
 valid_col_check:
 	lw	$ra, 0($sp)		# load return address from stack

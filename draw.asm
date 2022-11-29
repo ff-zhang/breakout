@@ -48,6 +48,9 @@ draw_paddle:
 	move	$a3, $t4
 	jal	draw_rectangle		# draw paddle at (x, y)
 	
+	li	$t0, 0xaaaaaa
+	sw	$t0, PADDLE_COLOUR
+	
 	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
 	jr	$ra			# return
