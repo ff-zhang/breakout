@@ -54,7 +54,16 @@
 
 \section{Part III: Milestone 2}
 
-\item \textbf{QUESTION: } How will the ball change directions when it collides?
+\item \textbf{QUESTION: } How will the ball change directions when it collides? \\[0.4em]
+The rules governing how the ball changes directions when it collides are as follows. \\[0.4em]
+If it collided with the paddle, then the resulting direction depends on which section of the paddle it hit.
+Hitting the leftmost third results it travelling north-east (at a $45^\circ$ angle), the middle third results it travelling north, and the rightmost third results in it travelling north-west (at a $45^\circ$ angle). \\[0.4em]
+Otherwise, if it collided with a non-paddle object then the resulting direction depends on the original direction.
+If the original direction of ball forms the angle $\theta$ with the surface it collided with, 
+then the resulting direction is the reflection of the original direction across the line perpendicular to the collision surface away from the collision point.
+For example, if the ball is travelling north-west (at a $45^\circ$ angle) and collides with the left wall, then it begins travelling in the north-east direction (at a $45^\circ$ angle).
+Note this also means if the ball was travelling perpendicular to surface with which it collided, then after the collision, it is moving in the reverse direction.
+So, if the ball was travelling north before colliding with the bottom of a brick, then it is travelling south after the collision.
 \item Upload breakout.asm to MarkUs so that you have a snapshot of your progress so far.
 
 \section{Part IV: Milestone 3}
