@@ -53,8 +53,10 @@ check_collision:
 	jal	next_location
 	lw	$s0, 0($sp)		# save predicted x coordinate
 	lw	$s1, 4($sp)		# save predicted y coordinate
-	# next_location returns (x, y) on the stack but we can immideatly pass it to get_pixel_address
 	
+	bge	$s1, 64, end		# end if ball is off screen (screen height is 64)
+	
+	# next_location returns (x, y) on the stack but we can immideatly pass it to get_pixel_address
 	jal	get_pixel_address
 	lw	$t0, 0($sp)		# get memory address of predicted pixel
 	addi	$sp, $sp, 4

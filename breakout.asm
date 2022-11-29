@@ -75,7 +75,7 @@ initialize:
 	li	$t0, 0xaaaaaa
 	sw	$t0, PADDLE_COLOUR
 	
-	li	$t0, 63
+	li	$t0, 57 # 63
 	sw	$t0, BALL_COORDS
 	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	addi	$t0, $t0, -1
@@ -146,12 +146,12 @@ game_loop:
     	
 	# 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
-	jal check_collision
-    	jal update_ball
+	jal	check_collision
+    	jal	update_ball
 	
 	# 4. Sleep
-	li $v0, 32
-	li $a0, 20		# add 1/3 ms delay
+	li	$v0, 32
+	li	$a0, 20		# add 1/3 ms delay
 	syscall
 
     	#5. Go back to 1
