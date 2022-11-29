@@ -23,15 +23,54 @@
 \section{Part I: Planning and Configuration}
 
 \begin{enumerate}
-\item Breakout Plan:
+\item \textbf{Breakout Bitmap Display and Memory Map Plan}: 
+Our plan is to have a 512 pixel (wdith) x 256 pixel (height) display while keeping the same base address 0x10008000 (\$gp). We also plan on having unit widths be 4 pixels x 4 pixels because it remains even while being a better size than say 2 x 2, which is too small. Table is on the next page.
 
+\begin{table}[]
+\begin{tabular}{|l|l|l|}
+\hline
+Data Segment     & Address                                                           & Data           \\ \hline
+IMMUTABLE DATA   &                                                                   &                \\ \hline
+                 & 0x10008000 (Address of Bitmap Display)                            & ADDR\_DSPL    \\ \hline
+                 & 0xffff0000 (Address of Keyboard)                                  & ADDR\_KBRD     \\ \hline
+                 & Takes in 1 address (Display width divided by unit width [in pixels])           & SCREEN\_WIDTH  \\ \hline
+                 & Takes in 1 address for colour of paddle (gray)                                 & PADDLE\_COLOUR \\ \hline
+                 & Takes in 1 address for colour of ball (white)                                  & BALL\_COLOUR   \\ \hline
+                 & Takes in 1 address for width of wall                                           & WALL\_WIDTH    \\ \hline
+                 & Takes in 1 address buffer colour (used for drawing walls, bricks)              & BUFFER\_COLOUR \\ \hline
+                 & Takes in 2 addresses (width, height) of brick                                  & BRICK\_DIM     \\ \hline
+GLOBAL VARIABLES &                                                                                &                \\ \hline
+                 & Values                                                                         & Data           \\ \hline
+                 & 13, 1 (length, height) of the paddle                                           & PADDLE\_DIM    \\ \hline
+                 & 5 (height) of buffer                                                           & BUFFER\_HEIGHT \\ \hline
+MUTABLE DATA     &                                                                   &                \\ \hline
+                 & Address                                                           & Data           \\ \hline
+                 & Takes in 2 addresses (x, y) coordinates                           & PADDLE\_COORDS \\ \hline
+                 & Takes in 2 addresses (x, y) coordinates                           & BALL\_COORDS   \\ \hline
+                 & Takes in 1 address for the movement direction of the ball         & DIRECTION      \\ \hline
+                 & Takes in 1 address for the y coordinate of a brick                & BRICKS\_Y      \\ \hline
+                 & Takes in 2 addresses (2-D array that stores colour)               & BRICKS         \\ \hline
+                 & Takes in 7 addresses (1 for array length, 6 for elements/colours) & COLOURS        \\ \hline
+\end{tabular}
+\end{table}
+
+\\
+
+\newpage
 \item Translate your plan into the .data section of your breakout.asm program. Assemble your program in MARS and inspect memory to ensure it matches your plan. Include a screenshot (or multiple screenshots) of memory demonstrating that it has been laid out according to your plan.
 
 \begin{figure}[ht!]
     \centering
-    % \includegraphics[width=0.8\textwidth]{milestone1_memory.png}
-    \caption{Screenshot of memory.}
-    \label{f:part1_memory_writer}
+    % \includegraphics[width=0.8\textwidth]{milestone1_memory1.png}
+    \caption{Screenshot of memory (1).}
+    \label{f:part1_memory1}
+\end{figure}
+
+\begin{figure}[ht!]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{milestone1_memory2.png}
+    \caption{Screenshot of memory (2).}
+    \label{f:part1_memory2}
 \end{figure}
 
 \newpage
