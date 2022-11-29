@@ -51,6 +51,10 @@ ADDR_KBRD:
 # 2-D array storing colour of each brick
 .extern BRICKS		368			# (number of rows * number of bricks per row + 2) * bytes per word
 
+# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
+WALLS_X:
+	.word	4, 111
+
 # array describing colour of each row, from top to bottom
 COLOURS:				# require A[0] = A.length - 1
 	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
@@ -59,7 +63,7 @@ COLOURS:				# require A[0] = A.length - 1
 # Code
 ##############################################################################
 	.text
-	.globl	main
+	.globl	main game_loop press_a press_d
 	
 initialize:
 	li	$t0, 57
@@ -135,13 +139,14 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	# jal get_key
-    	# j press_a
-    	# j press_d
+    	jal get_key
+    	#j press_a
+    	#j press_d
     	
 	# 2a. Check for collisions
-	# 2b. Update locations (paddle, ball)
 	jal check_collision
+	
+	# 2b. Update locations (paddle, ball)
     	jal update_ball
 	
 	# 4. Sleep
@@ -219,7 +224,7 @@ press_d:
 	sw	$t0, 0($sp)		# push x coordinate onto stack
 	jal	draw_paddle		# draw new paddle (in new position)
 	
-	b game_loop
+	b game_loop	
 	
 left_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
@@ -231,7 +236,7 @@ left_paddle_col:
 	
 	bge	$t0, $t1, valid_col_check	# left wall check
 	
-	# j check_key
+	j get_key
 
 right_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
@@ -243,7 +248,7 @@ right_paddle_col:
 	
 	ble	$t0, $t1, valid_col_check	# right wall check
 	
-	# j check_key
+	j get_key
 
 valid_col_check:
 	lw	$ra, 0($sp)		# load return address from stack
