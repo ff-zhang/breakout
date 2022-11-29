@@ -10,7 +10,7 @@ ADDR_KBRD:
 	.word	0xffff0000
 
 PADDLE_DIM:
-	.word	13, 1
+	.word	18, 1
 
 BUFFER_HEIGHT:
 	.word	5

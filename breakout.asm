@@ -53,6 +53,10 @@ ADDR_KBRD:
 # 2-D array storing colour of each brick
 .extern BRICKS		368			# (number of rows * number of bricks per row + 2) * bytes per word
 
+# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
+WALLS_X:
+	.word	4, 111
+
 # array describing colour of each row, from top to bottom
 COLOURS:				# require A[0] = A.length - 1
 	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
@@ -61,7 +65,7 @@ COLOURS:				# require A[0] = A.length - 1
 # Code
 ##############################################################################
 	.text
-	.globl	main
+	.globl	main game_loop press_a press_d
 	
 initialize:
 	li	$t0, 128
@@ -140,7 +144,7 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	# jal get_key
+    	jal get_key
     	# j press_a
     	# j press_d
     	
@@ -162,7 +166,7 @@ end:	li	$v0, 10
 
 press_a:
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
+	addi	$t1, $a0, -4		# create new paddle position (4 units left)  
 	  
 	addi	$sp, $sp, -4
 	sw	$t1, 0($sp)
@@ -176,7 +180,7 @@ press_a:
 	
 	# move paddle left (new position)
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
+	addi	$t1, $a0, -4		# create new paddle position (4 units left)  
 	la	$a0, PADDLE_COORDS	# load paddle coordinate address
 	sw	$t1, 0($a0)		# save new x coordinate
 	
@@ -190,7 +194,7 @@ press_a:
 
 press_d:
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 1		# create new paddle position (2 units left) 
+	addi	$t1, $a0, 4		# create new paddle position (4 units right) 
 	  
 	addi	$sp, $sp, -4
 	sw	$t1, 0($sp)
@@ -204,7 +208,7 @@ press_d:
 	
 	# move paddle right
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 1		# create new paddle position (2 units left)  
+	addi	$t1, $a0, 4		# create new paddle position (4 units right)  
 	la	$a0, PADDLE_COORDS	# load paddle coordinate address
 	sw	$t1, 0($a0)		# save new x coordinate
 	
@@ -226,7 +230,7 @@ left_paddle_col:
 	
 	bge	$t0, $t1, valid_col_check	# left wall check
 	
-	# j check_key
+	j get_key
 
 right_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
@@ -238,7 +242,7 @@ right_paddle_col:
 	
 	ble	$t0, $t1, valid_col_check	# right wall check
 	
-	# j check_key
+	j get_key
 
 valid_col_check:
 	lw	$ra, 0($sp)		# load return address from stack
