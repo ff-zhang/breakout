@@ -23,6 +23,8 @@ ADDR_DSPL:
 ADDR_KBRD:
 	.word	0xffff0000
 
+.extern	SCREEN_WIDTH	32
+
 .extern PADDLE_COLOUR	32
 
 .extern BALL_COLOUR	32
@@ -62,6 +64,9 @@ COLOURS:				# require A[0] = A.length - 1
 	.globl	main
 	
 initialize:
+	li	$t0, 128
+	sw	$t0, SCREEN_WIDTH	# display width in pixels divided by unit width in pixels
+
 	li	$t0, 57
 	li	$t1, 55
 	sw	$t0, PADDLE_COORDS	# paddle x s.t. it is in the center of the scrren
@@ -78,7 +83,7 @@ initialize:
 	
 	li	$t0, 0xffffff
 	sw	$t0, BALL_COLOUR
-	li	$t0, 0
+	li	$t0, 2
 	sw	$t0, DIRECTION		# initially the ball goes straigt up
 	
 	li	$t0, 4

@@ -9,9 +9,6 @@ ADDR_DSPL:
 ADDR_KBRD:
 	.word	0xffff0000
 
-SCREEN_WIDTH:
-	.word	128		# display width in pixels divided by unit width in pixels
-
 PADDLE_DIM:
 	.word	13, 1
 
@@ -39,7 +36,6 @@ draw_paddle:
 	lw	$t3, PADDLE_DIM		# load paddle width
 	lw	$t4, PADDLE_DIM+4	# load paddle height
 	
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$t0, 0($sp)		# push colour onto stack
 	move	$a0, $t1
@@ -51,7 +47,8 @@ draw_paddle:
 	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
 	jr	$ra			# return
-	
+
+
 # parameters
 #	coords - pointer to the (x, y) coordinate of the top left corner of the paddle
 delete_paddle:				# same thing as draw_paddle but colour is black
@@ -68,11 +65,10 @@ delete_paddle:				# same thing as draw_paddle but colour is black
 	addi	$sp, $sp, 8
 	jr	$ra			# return
 
+
 # parameters
 #	coords - pointer to the (x, y) coordinate of the ball
 draw_ball:
-	# lw	$a0, BALL_COORDS	# load ball x coordinate
-	# lw	$a1, BALL_COORDS+4	# load ball y coordinate
 	lw	$t8, BALL_COORDS	# load ball x coordinate
 	lw	$t9, BALL_COORDS+4	# load ball y coordinate
 	
@@ -82,7 +78,6 @@ draw_ball:
 	lw	$t0, BALL_COLOUR	# load ball colour
 	li	$t1, 1			# set ball width and height
 	
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$t0, 0($sp)		# push colour onto stack
 	move	$a0, $t8
@@ -130,7 +125,6 @@ draw_walls:
 	lw	$s1, WALL_WIDTH		# load wall width
 	addi	$s2, $a0, -2		# set side wall height = paddle y - 2
 	
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	move	$a0, $zero
@@ -141,7 +135,6 @@ draw_walls:
 	
 	lw	$t0, SCREEN_WIDTH	# load screen width
 	sub	$t0, $t0, $s1		# set right wall y coordinate = screen width - wall width
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	move	$a0, $t0
@@ -151,7 +144,6 @@ draw_walls:
 	jal	draw_rectangle		# draw right wall
 	
 	lw	$t0, SCREEN_WIDTH	# set ceiling width = screen width
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	move	$a0, $zero
@@ -163,7 +155,6 @@ draw_walls:
 	lw	$s0, BUFFER_COLOUR	# set buffer colour
 	
 	lw	$t2, BUFFER_HEIGHT	# load buffer height
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push buffer colour onto stack
 	move	$a0, $zero
@@ -175,7 +166,6 @@ draw_walls:
 	lw	$t0, SCREEN_WIDTH	# load screen width
 	sub	$t0, $t0, $s1		# set right buffer y coordinate = right wall y coordinate
 	lw	$t1, BUFFER_HEIGHT	# load buffer height
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push buffer colour onto stack
 	move	$a0, $t0
@@ -244,6 +234,7 @@ n2:	lw	$ra, 0($sp)		# pop return address from stack
 	addi	$sp, $sp, 16
 	jr	$ra			# return
 
+
 # parameters
 #	colour - colour of the brick to draw
 #	x - x coordinate of the top left corner of the brick
@@ -260,7 +251,6 @@ draw_brick:
 	lw	$t0, BRICK_DIM		# load brick width
 	lw	$t1, BRICK_DIM+4	# load brick height
 	
-	# addi	$sp, $sp, -20
 	addi	$sp, $sp, -4
 	sw	$a0, 0($sp)		# push brick colour on stack
 	move	$a0, $a1
@@ -271,9 +261,9 @@ draw_brick:
 	
 	lw	$ra, 0($sp)		# pop return address from stack
 	addi	$sp, $sp, 4
-	
 	jr	$ra			# return
-	
+
+
 delete_brick:
 	lw	$a0, 0($sp)		# pop i from stack
 	lw	$a1, 4($sp)		# pop j from stack
@@ -281,9 +271,6 @@ delete_brick:
 	
 	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)
-	
-	la	$t0, BRICKS
-	addi	$t0, $t0, 8		# ptr to first brick colour element of array
 	
 	lw	$t6, BRICKS_Y
 	lw	$t7, WALL_WIDTH		# load wall width
@@ -294,8 +281,6 @@ delete_brick:
 	add	$t1, $t1, $t7		# x coordinate of (i, j) brick
 	mulo	$t2, $a1, $t9
 	add	$t2, $t2, $t6		# y coordinate of (i, j) brick
-	
-	# update brick colour to black (0x000000)
 	
 	addi	$sp, $sp, -12
 	li	$t0, 0
@@ -308,19 +293,15 @@ delete_brick:
 	addi	$sp, $sp, 4
 	jr	$ra	
 
+
 # parameters
 #	colour - colour of the rectangle to draw
-#	x - x coordinate of the top left corner of the brick
-#	y - y coordinate of the top left corner of the brick
-#	width - the width of the rectangle
-#	height - the height of the rectangle
+#	($a0) x - x coordinate of the top left corner of the brick
+#	($a1) y - y coordinate of the top left corner of the brick
+#	($a2) width - the width of the rectangle
+#	($a3) height - the height of the rectangle
 draw_rectangle:
 	lw 	$t7, 0($sp)		# pop colour from stack
-	# lw	$a0, 4($sp)		# pop x from stack
-	#lw	$a1, 8($sp)		# pop y from stack
-	# lw	$a2, 12($sp)		# load width of rectangle
-	# lw	$a3, 16($sp)		# load height of rectangle
-	# addi	$sp, $sp, 20
 	addi	$sp, $sp, 4
 	
 	lw	$t8, SCREEN_WIDTH	# load screen width
@@ -358,8 +339,8 @@ u1:	addi	$s0, $s0, 1		# i++
 n1:	lw	$ra, 4($sp)
 	lw	$s0, 8($sp)		# restore $s0 value
 	addi	$sp, $sp, 12
-
 	jr	$ra			# return
+
 
 # DO NOT CHANGE ANY ADDRESS REGISTERS
 get_pixel_address:
@@ -377,6 +358,5 @@ get_pixel_address:
 	
 	addi	$sp, $sp, -4
 	sw	$t2, 0($sp)
-
 	jr	$ra
 	
