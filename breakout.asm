@@ -36,6 +36,10 @@ ADDR_KBRD:
 # (width, height)
 .extern	BRICK_DIM	64
 
+# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
+WALLS_X:
+	.word	4, 111
+
 ##############################################################################
 # Mutable Data
 ##############################################################################
@@ -52,10 +56,6 @@ ADDR_KBRD:
 	
 # 2-D array storing colour of each brick
 .extern BRICKS		368			# (number of rows * number of bricks per row + 2) * bytes per word
-
-# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
-WALLS_X:
-	.word	4, 111
 
 # array describing colour of each row, from top to bottom
 COLOURS:				# require A[0] = A.length - 1
@@ -223,7 +223,7 @@ press_d:
 left_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
 	
-	li	$t1, 4				# load left wall boundary
+	lw	$t1, WALLS_X			# load left wall boundary
 	
 	addi	$sp, $sp, -4			# allocate memory
 	sw	$ra, 0($sp)			# push return address onto stack
@@ -235,7 +235,7 @@ left_paddle_col:
 right_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
 		
-	li	$t1, 111			# load right wall boundary
+	lw	$t1, WALLS_X+4			# load right wall boundary
 	
 	addi	$sp, $sp, -4			# allocate memory
 	sw	$ra, 0($sp)			# push return address onto stack
