@@ -15,27 +15,17 @@ SCREEN_WIDTH:
 PADDLE_DIM:
 	.word	13, 1
 
-PADDLE_COLOUR:
-	.word	0xaaaaaa
-
-WALL_WIDTH:
-	.word	4
-
-BALL_COLOUR:
-	.word	0xffffff
-
 BUFFER_HEIGHT:
 	.word	5
-
-# (width, height)
-BRICK_DIM:
-	.word	8, 4
 
 ##############################################################################
 # Code
 ##############################################################################
 	.text
-	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball
+	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball delete_brick get_pixel_address
+	
+	li	$v0, 10 
+	syscall
 
 # parameters
 #	coords - pointer to the (x, y) coordinate of the top left corner of the paddle
@@ -164,7 +154,7 @@ draw_walls:
 	sw	$s1, 16($sp)		# push ceiling height = wall width onto stack
 	jal	draw_rectangle		# draw ceiling
 
-	li	$s0, 0xff88ff		# set buffer colour
+	lw	$s0, BUFFER_COLOUR	# set buffer colour
 	
 	lw	$t2, BUFFER_HEIGHT	# load buffer height
 	addi	$sp, $sp, -20
@@ -274,6 +264,34 @@ draw_brick:
 	addi	$sp, $sp, 4
 	
 	jr	$ra			# return
+	
+delete_brick:
+	lw	$a0, 0($sp)		# pop i from stack
+	lw	$a1, 4($sp)		# pop j from stack
+	addi	$sp, $sp, 8
+	
+	lw	$t0, BRICKS
+	addi	$t0, $t0, 8		# ptr to first brick colour element of array
+	
+	lw	$t6, BRICKS_Y
+	lw	$t7, WALL_WIDTH		# load wall width
+	lw	$t8, BRICK_DIM		# load brick width
+	lw	$t9, BRICK_DIM+4	# load brick height
+	
+	mulo	$t1, $a0, $t8
+	add	$t1, $t1, $t7		# x coordinate of (i, j) brick
+	mulo	$t2, $a1, $t9
+	add	$t2, $t2, $s0		
+	add	$t2, $t2, $t6		# y coordinate of (i, j) brick
+	
+	# update brick colour to black (0x000000)
+	
+	addi	$sp, $sp, -12
+	li	$t0, 0
+	sw	$t0, 0($sp)		# push brick colour onto stack
+	sw	$t1, 4($sp)		# push x coordinate onto stack
+	sw	$t2, 8($sp)		# push y coordinate onto stack
+	jal	draw_brick
 
 # parameters
 #	colour - colour of the rectangle to draw
@@ -282,32 +300,67 @@ draw_brick:
 #	width - the width of the rectangle
 #	height - the height of the rectangle
 draw_rectangle:
-	lw 	$a0, 0($sp)		# pop colour from stack
-	lw	$t0, 4($sp)		# pop x from stack
-	lw	$t1, 8($sp)		# pop y from stack
-	mulo	$t1, $t1, 128		# set leftmost pixel of row y
-	add	$a1, $t0, $t1		# set position of pixel (x, y)
+	lw 	$t7, 0($sp)		# pop colour from stack
+	lw	$a0, 4($sp)		# pop x from stack
+	lw	$a1, 8($sp)		# pop y from stack
 	lw	$a2, 12($sp)		# load width of rectangle
 	lw	$a3, 16($sp)		# load height of rectangle
 	addi	$sp, $sp, 20
 	
 	lw	$t8, SCREEN_WIDTH	# load screen width
 	lw	$t9, ADDR_DSPL		# load ptr to display memory location
+
+	addi	$sp, $sp, -12
+	sw	$t7, 0($sp)		# store colour of pixel on stack
+	sw	$ra, 4($sp)		# store return address on stack
+	sw	$s0, 8($sp)		# store old $s0 on stack
 	
-	add	$t0, $zero, $zero	# initialize loop variable i = 0
-	mulo	$t1, $a2, $a3		# set loop condition = number of pixels in the rectangle
-l1:	beq	$t0, $t1, n1
-	rem	$t2, $t0, $a2		# calulate x offset
-	div	$t3, $t0, $a2		# calculate y offset
-	mulo	$t3, $t3, $t8		# calculate leftmost pixel of row y
+	add	$s0, $zero, $zero	# initialize loop variable i = 0
+l1:	mulo	$t1, $a2, $a3		# set loop condition = number of pixels in the rectangle
+	beq	$s0, $t1, n1
+	rem	$t2, $s0, $a2		# calculate x offset
+	add	$t2, $a0, $t2		# calculate x'
+	div	$t3, $s0, $a2		# calculate y offset
+	add	$t3, $a1, $t3		# calculate y'
 	
-	add	$t2, $t2, $t3		# calculate distance from pixel (x, y) to pixel (x offset, y offset)
-	add	$t2, $a1, $t2		# calculate position of pixel (x', y') = (x, y) + (x offset, y offset)
-	mulo	$t2, $t2, 4		# calculate distnace memory address of pixel (x, y) to that of (x', y')
-	add	$t2, $t2, $t9		# set ptr to memory address of pixel (x', y')
-	sw	$a0, 0($t2)		# store colour at memory address of pixel (x', y')
+	addi	$sp, $sp, -8
+	sw	$t2, 0($sp)
+	sw	$t3, 4($sp)
+
+	jal	get_pixel_address
+
+	lw	$t4, 0($sp)
+	addi	$sp, $sp, 4
+
+	lw	$t7, 0($sp)
+	sw	$t7, 0($t4)		# store colour at memory address of pixel (x', y')
 	
-u1:	addi	$t0, $t0, 1		# i++
+	
+u1:	addi	$s0, $s0, 1		# i++
 	j	l1
 
-n1:	jr	$ra			# return
+n1:	lw	$ra, 4($sp)
+	lw	$s0, 8($sp)		# restore $s0 value
+	addi	$sp, $sp, 12
+
+	jr	$ra			# return
+
+# DO NOT CHANGE ANY ADDRESS REGISTERS
+get_pixel_address:
+	lw	$t0, SCREEN_WIDTH	# load screen width
+	lw	$t1, ADDR_DSPL
+
+	lw	$t2, 0($sp)		# pop x from stack
+	lw	$t3, 4($sp)		# pop y from stack
+	addi	$sp, $sp, 8
+
+	mulo	$t3, $t0, $t3		# find position of leftmost pixel of row y
+	add	$t2, $t2, $t3		# find position of pixel (x, y)
+	sll	$t2, $t2, 2		# calculate offset of pixel (x, y) memory address from base
+	add 	$t2, $t1, $t2		# get ptr to memory address of pixel (x', y')
+	
+	addi	$sp, $sp, -4
+	sw	$t2, 0($sp)
+
+	jr	$ra
+	

@@ -23,6 +23,17 @@ ADDR_DSPL:
 ADDR_KBRD:
 	.word	0xffff0000
 
+.extern PADDLE_COLOUR	32
+
+.extern BALL_COLOUR	32
+
+.extern	WALL_WIDTH	32
+
+.extern BUFFER_COLOUR	32
+
+# (width, height)
+.extern	BRICK_DIM	64
+
 ##############################################################################
 # Mutable Data
 ##############################################################################
@@ -31,6 +42,8 @@ ADDR_KBRD:
 
 # (x, y) coordinates of the ball
 .extern BALL_COORDS	64	# size of two words
+
+.extern	DIRECTION	32	# size of one word
 
 # y coordinate of the top of the first row of bricks
 .extern	BRICKS_Y	32	# size of one word
@@ -41,7 +54,6 @@ ADDR_KBRD:
 # array describing colour of each row, from top to bottom
 COLOURS:				# require A[0] = A.length - 1
 	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
-
 
 ##############################################################################
 # Code
@@ -55,11 +67,30 @@ initialize:
 	sw	$t0, PADDLE_COORDS	# paddle x s.t. it is in the center of the scrren
 	sw	$t1, PADDLE_COORDS+4
 	
+	li	$t0, 0xaaaaaa
+	sw	$t0, PADDLE_COLOUR
+	
 	li	$t0, 63
 	sw	$t0, BALL_COORDS
 	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	addi	$t0, $t0, -1
 	sw	$t0, BALL_COORDS+4	# ball initially starts on top the paddle
+	
+	li	$t0, 0xffffff
+	sw	$t0, BALL_COLOUR
+	li	$t0, 0
+	sw	$t0, DIRECTION		# initially the ball goes straigt up
+	
+	li	$t0, 4
+	sw	$t0, WALL_WIDTH
+	
+	li	$t0, 0xff88ff
+	sw	$t0, BUFFER_COLOUR
+	
+	li	$t0, 8
+	li	$t1, 4
+	sw	$t0, BRICK_DIM
+	sw	$t1, BRICK_DIM+4
 	
 	li	$t0, 12
 	sw	$t0, BRICKS_Y
@@ -104,7 +135,31 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 	sw	$t0, 0($sp)		# push paddle y coordinate onto stack
 	jal	draw_walls		# draw the walls around the play area
 	
-	# jal	draw_bricks
+	jal	draw_bricks	
+
+
+game_loop:
+	# 1a. Check if key has been pressed
+    	# 1b. Check which key has been pressed
+    	# jal get_key
+    	# j press_a
+    	# j press_d
+    	
+	# 2a. Check for collisions
+	# 2b. Update locations (paddle, ball)
+	jal check_collision
+    	jal update_ball
+	
+	# 4. Sleep
+	li $v0, 32
+	li $a0, 60		# add ms delay
+	syscall
+
+    	#5. Go back to 1
+	b	game_loop
+
+end:	li	$v0, 10 
+	syscall				# exit program gracefully
 
 game_start:
 	# implement start when paddle is moved
@@ -114,31 +169,6 @@ game_start:
 	
 	addi	$sp, $sp, -4
 	sw	$t0, 0($sp)		# push direction onto stack
-
-check_collision:
-	# checks for collision, x and y
-	# beq collision
-	
-	# beq no collision
-	
-check_key:
-		li	$v0, 32		# 32 char
-		li	$a0, 1		# 1 char
-		syscall
-		
-	lw 	$t7, ADDR_KBRD          # $t0 = base address for keyboard
-    	lw 	$t4, 0($t7)             # Load first word from keyboard
-    	beq 	$t4, 1, key_in      	# If first word 1, key is pressed
-    	
-    	b game_loop
-
-key_in:	lw 	$a0, 4($t7)		# load input letter
-
-	beq 	$a0, 0x78, end		# exit when x pressed
-	beq 	$a0, 0x61, press_a	# move paddle left
-	beq 	$a0, 0x64, press_d	# move paddle right
-	
-	b game_loop
 
 press_a:
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
@@ -195,30 +225,7 @@ press_d:
 	sw	$t0, 0($sp)		# push x coordinate onto stack
 	jal	draw_paddle		# draw new paddle (in new position)
 	
-	b game_loop	
-
-
-game_loop:
-	# 1a. Check if key has been pressed
-    	# 1b. Check which key has been pressed
-    	jal update_ball
-    	j check_key
-    	j key_in
-    	j press_a
-    	j press_d
-    	
-	# 2a. Check for collisions
-	# 2b. Update locations (paddle, ball)
-	
-	# 3. Draw the screen
-	
-	# 4. Sleep
-	li $v0, 32
-	li $a0, 60		# ms delay
-	syscall
-
-    	#5. Go back to 1
-	b	game_loop
+	b game_loop
 	
 left_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
@@ -230,7 +237,7 @@ left_paddle_col:
 	
 	bge	$t0, $t1, valid_col_check	# left wall check
 	
-	j check_key
+	# j check_key
 
 right_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
@@ -242,13 +249,9 @@ right_paddle_col:
 	
 	ble	$t0, $t1, valid_col_check	# right wall check
 	
-	j check_key
+	# j check_key
 
 valid_col_check:
 	lw	$ra, 0($sp)		# load return address from stack
 	addi	$sp, $sp, 4
 	jr	$ra			# return
-	
-	
-end:	li	$v0, 10 
-	syscall				# exit program gracefully
