@@ -153,7 +153,7 @@ game_loop:
 	
 	# 4. Sleep
 	li	$v0, 32
-	li	$a0, 20		# add 1/3 ms delay
+	li	$a0, 40		# add 2/3 ms delay
 	syscall
 
     	#5. Go back to 1
