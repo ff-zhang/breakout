@@ -24,9 +24,10 @@
 
 \begin{enumerate}
 \item \textbf{Breakout Bitmap Display and Memory Map Plan}: 
-Our plan is to have a 512 pixel (wdith) x 256 pixel (height) display while keeping the same base address 0x10008000 (\$gp). We also plan on having unit widths be 4 pixels x 4 pixels because it remains even while being a better size than say 2 x 2, which is too small. Table is on the next page.
-
-\begin{table}[]
+Our plan is to have a 512 pixel (wdith) x 256 pixel (height) display while keeping the same base address 0x10008000 (\$gp). 
+We also plan on having unit widths be 4 pixels x 4 pixels because it remains even while being a better size than say 2 x 2, which is too small.
+A table of our memory map plan is given below.
+\begin{table}[ht!]
 \begin{tabular}{|l|l|l|}
 \hline
 Data Segment     & Address                                                           & Variable Names           \\ \hline
@@ -52,34 +53,30 @@ MUTABLE DATA     &                                                              
 \end{tabular}
 \end{table}
 
-\\
-
-\newpage
 \item Translate your plan into the .data section of your breakout.asm program. Assemble your program in MARS and inspect memory to ensure it matches your plan. Include a screenshot (or multiple screenshots) of memory demonstrating that it has been laid out according to your plan.
 
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=0.5\textwidth]{memory2.png}
-    \caption{Screenshot of .data code section (1).}
+    \caption{Screenshot of immutable variables in the .data code section.}
     \label{f:part1_memory1}
 \end{figure}
 
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=0.5\textwidth]{memory3.png}
-    \caption{Screenshot of .data code section (2).}
+    \caption{Second screenshot of mutable variables in the .data code section.}
     \label{f:part1_memory2}
 \end{figure}
 
 \begin{figure}[ht!]
     \centering
-    \includegraphics[width=1.2\textwidth]{memory1.png}
+    \includegraphics[width=\textwidth]{memory1.png}
     \caption{Screenshot of .data memory.}
     \label{f:part1_memory3}
 \end{figure}
 
-\newpage
-
+\clearpage
 \section{Part II: Milestone 1}
 
 \item Draw the scene (Milestone 1)
@@ -92,9 +89,6 @@ MUTABLE DATA     &                                                              
 \end{figure}
 
 \end{enumerate}
-
-
-\newpage
 
 \section{Part III: Milestone 2}
 
