@@ -130,9 +130,6 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 	
 	jal	draw_ball		# draw the ball on the center of the paddle
 	
-	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
-	addi	$sp, $sp, -4
-	sw	$t0, 0($sp)		# push paddle y coordinate onto stack
 	jal	draw_walls		# draw the walls around the play area
 	
 	jal	draw_bricks	
