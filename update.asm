@@ -14,32 +14,30 @@ ADDR_KBRD:
 # Code
 ##############################################################################
 	.text
-	.globl	update_ball get_key key_in check_collision
+	.globl	update_ball get_key check_collision
 
 end:	li	$v0, 10 
 	syscall
 	
 get_key:
-	#li	$v0, 32			# 32 char
-	#li	$a0, 1			# 1 char
-	#syscall
+	li	$v0, 12			# 32 char
+	# li	$a0, 1			# 1 char
+	syscall
 		
 	lw 	$t9, ADDR_KBRD          # $t0 = base address for keyboard
     	lw 	$t4, 0($t9)             # Load first word from keyboard
     	beq 	$t4, 1, key_in      	# If first word 1, key is pressed
     	
     	jr	$ra
-    	#b 	game_loop
-  
 
-key_in:	lw 	$a0, 4($t9)		# load input letter
+key_in:	lw 	$a0, 4($t7)		# load input letter
 
 	beq 	$a0, 0x78, end		# exit when x pressed
-	#beq 	$a0, 0x71, end		# exit when q pressed
-	beq 	$a0, 0x61, press_a	# move paddle left
-	beq 	$a0, 0x64, press_d	# move paddle right
+	beq 	$a0, 0x71, end		# exit when q pressed
+	# beq 	$a0, 0x61, press_a	# move paddle left
+	# beq 	$a0, 0x64, press_d	# move paddle right
 	
-	jal check_collision
+	jr	$ra
 
 
 check_collision:
@@ -145,13 +143,29 @@ else1:	lw	$t7, PADDLE_COORDS+4
 		j	dflt
 
 	# collide with paddle
-paddle:	li	$t0, 1			# start moving NW
+paddle:	lw	$t6, PADDLE_COORDS		# load x coordinate of paddle
+	# recall $s0 is the predicted x coordinate
+case3a:	addi	$t7, $t6, 5
+	bgt	$s0, $t7, case3b
+	# hit left third of paddle
+	li	$t0, 1
 	sw	$t0, DIRECTION
 	j	dflt
 
-	# 
+case3b: addi	$t7, $t6, 8
+	blt	$s0, $t7, case3c
+	# hit right third of paddle
+	li	$t0, 3
+	sw	$t0, DIRECTION
+	j	dflt
+	
+	# hit center of paddle
+case3c:	li	$t0, 2
+	sw	$t0, DIRECTION
+	j	dflt
+
 dflt:	lw	$t0, PADDLE_COLOUR
-	beq	$t0, $t1, return	# predicted colour != wall or paddle colour
+	beq	$t0, $t1, return	# predicted colour != wall / paddle colour
 	lw	$t0, BUFFER_COLOUR
 	beq	$t0, $t1, return	# predicted colour != buffer colour
 	
