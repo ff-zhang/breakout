@@ -189,8 +189,7 @@ draw_walls:
 #	y - y coordinate of the top of the first row of bricks
 #	colours - pointer to array of row colours, ordered top to bottom
 draw_bricks:
-	lw	$a0, BRICKS_Y		# pop y coordinate of top row from stack
-	la	$a1, BRICKS		# pop ptr to array of colours from stack
+	lw	$a0, BRICKS_Y		# load y coordinate of top row from stack
 	
 	addi	$sp, $sp, -16
 	sw	$ra, 0($sp)		# push return address onto stack
@@ -199,23 +198,22 @@ draw_bricks:
 	sw	$s2, 12($sp)		# push old $s2 value on stack
 	
 	add	$s0, $zero, $a0		# store y coordinate of top row
-	add	$s1, $a1, 8		# ptr to first brick colour element of array
 	li	$s2, 0			# initialize loop variable k = 0
-l2:	lw	$t8, -8($s1)		# load number of rows
-	lw	$t9, -4($s1)		# load number of bricks per row
+l2:	lw	$t8, BRICKS		# load number of rows
+	lw	$t9, BRICKS+4		# load number of bricks per row
 	mulo	$t0, $t8, $t9		# loop condition = number of elements
 	beq	$s2, $t0, n2
 	
-	sll	$t0, $s2, 2		# i * 4
-	add	$t0, $s1, $t0		# ptr to ith element of array
-	lw	$t0, 0($t0)		# load colour of brick
 	rem	$t1, $s2, $t9
 	div	$t2, $s2, $t9		# ($t1, $t2) = (i, j) location of k in 2-D array
+	sll	$t0, $t2, 2
+	la	$t7, COLOURS+4		# ptr to first colour of COLOURS
+	add	$t0, $t0, $t7
+	lw	$t0, 0($t0)		# load ith element of COLOURS
 
 	lw	$t7, WALL_WIDTH		# load wall width
 	lw	$t8, BRICK_DIM		# load brick width
 	lw	$t9, BRICK_DIM+4	# load brick height
-	
 	mulo	$t1, $t1, $t8
 	add	$t1, $t1, $t7		# x coordinate of (i, j) brick
 	mulo	$t2, $t2, $t9

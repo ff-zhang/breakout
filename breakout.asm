@@ -1,8 +1,8 @@
 ################ CSC258H1F Fall 2022 Assembly Final Project ##################
 # This file contains our implementation of Breakout.
 #
-# Student 1: Name, Student Number
-# Student 2: Name, Student Number
+# Student 1: Felix Zhang, 1007650212
+# Student 2: Janssen Myer Rambaud, 1008107004
 ######################## Bitmap Display Configuration ########################
 # - Unit width in pixels:       4
 # - Unit height in pixels:      4
@@ -40,22 +40,24 @@ ADDR_KBRD:
 # Mutable Data
 ##############################################################################
 # (x, y) coordinates of the top left corner of the paddle
-.extern	PADDLE_COORDS	64	# size of two words
+.extern	PADDLE_COORDS	64	# size of 2 words
 
 # (x, y) coordinates of the ball
 .extern BALL_COORDS	64	# size of two words
 
-.extern	DIRECTION	32	# size of one word
+.extern	DIRECTION	32	# size of 1 word
 
 # y coordinate of the top of the first row of bricks
-.extern	BRICKS_Y	32	# size of one word
+.extern	BRICKS_Y	32	# size of 1 word
 	
 # 2-D array storing colour of each brick
-.extern BRICKS		368			# (number of rows * number of bricks per row + 2) * bytes per word
+#.extern BRICKS		368			# (number of rows * number of bricks per row + 2) * bytes per word
+.extern BRICKS		64
 
 # array describing colour of each row, from top to bottom
-COLOURS:				# require A[0] = A.length - 1
-	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
+.extern	COLOURS		224	# size of 7 words (1 for array length, 6 for elements)
+# COLOURS:				# require A[0] = A.length - 1
+#	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
 
 ##############################################################################
 # Code
@@ -75,7 +77,7 @@ initialize:
 	li	$t0, 0xaaaaaa
 	sw	$t0, PADDLE_COLOUR
 	
-	li	$t0, 57 # 63
+	li	$t0, 63
 	sw	$t0, BALL_COORDS
 	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	addi	$t0, $t0, -1
@@ -99,36 +101,27 @@ initialize:
 	
 	li	$t0, 12
 	sw	$t0, BRICKS_Y
+	
+	li	$t0, 6
+	sw	$t0, COLOURS
+	li	$t1, 0xff0000
+	sw	$t1, COLOURS+4
+	li	$t2, 0xff8000
+	sw	$t2, COLOURS+8
+	li	$t3, 0xffff00
+	sw	$t3, COLOURS+12
+	li	$t4, 0x00ff00
+	sw	$t4, COLOURS+16
+	li	$t5, 0x0000ff
+	sw	$t5, COLOURS+20
+	li	$t6, 0x8000ff
+	sw	$t6, COLOURS+24
 
 	lw	$t0, COLOURS
-	li	$t1, 15
 	sw	$t0, BRICKS		# store the number of bricks in BRICKS[0]
+	li	$t1, 15
 	sw	$t1, BRICKS+4		# store the number of bricks per row in BRICKS[1]
-	
-	# initializes the colour of each brick
-	li	$t0, 0			# initialize loop variable i = 0
-	lw	$t1, BRICKS
-	sll	$t1, $t1, 2		# loop condition is number of rows * 4
-l1:	beq	$t0, $t1, e1
-	li	$t2, 0			# initialize loop variable j = 0
-	lw	$t3, BRICKS+4
-	sll	$t3, $t3, 2		# loop condition is number of bricks per row
-l2:	beq	$t2, $t3, u1
-	mulo	$t5, $t0, $t3
-	sra	$t5, $t5, 2		# $t5 = $t5 // 4
-	add	$t5, $t2, $t5
-	addi	$t5, $t5, 8		# index of (i, j) brick in BRICKS * 4
-	la	$t5, BRICKS($t5)	# pointer to (i, j) brick
-	lw	$t6, COLOURS+4($t0)	# load colour of ith row
-	sw	$t6, 0($t5)		# store colour of ith row in (i, j) brick
-	
-u2:	addi	$t2, $t2, 4		# j += 4
-	j	l2
-
-u1:	addi	$t0, $t0, 4		# i += 4
-	j	l1
-	
-e1:	j	main	
+	j	main	
 	
 	# Run the Brick Breaker game.
 main:	jal	draw_paddle		# draw paddle in the center of the screen
@@ -140,18 +133,17 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	# jal get_key
-    	# j press_a
-    	# j press_d
+    	jal	get_key			# returns key pressed which we leave on the stack
     	
 	# 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
+	jal	update_paddle
 	jal	check_collision
     	jal	update_ball
 	
 	# 4. Sleep
 	li	$v0, 32
-	li	$a0, 20		# add 1/3 ms delay
+	li	$a0, 40		# add 2/3 ms delay
 	syscall
 
     	#5. Go back to 1
@@ -159,88 +151,3 @@ game_loop:
 
 end:	li	$v0, 10 
 	syscall				# exit program gracefully
-
-press_a:
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
-	  
-	addi	$sp, $sp, -4
-	sw	$t1, 0($sp)
-	jal left_paddle_col
-	
-	# delete previous paddle
-	la	$t0, PADDLE_COORDS	# load paddle coordinate address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	delete_paddle		# delete paddle (paint past paddle position black)
-	
-	# move paddle left (new position)
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
-	la	$a0, PADDLE_COORDS	# load paddle coordinate address
-	sw	$t1, 0($a0)		# save new x coordinate
-	
-	# draw paddle		
-	la	$t0, PADDLE_COORDS	# load paddle address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	draw_paddle		# draw new paddle (in new position)
-	
-	b game_loop	
-
-press_d:
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 1		# create new paddle position (2 units left) 
-	  
-	addi	$sp, $sp, -4
-	sw	$t1, 0($sp)
-	jal right_paddle_col
-
-	# delete previous paddle
-	la	$t0, PADDLE_COORDS	# load paddle coordinate address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	delete_paddle		# delete paddle (paint past paddle position black)
-	
-	# move paddle right
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 1		# create new paddle position (2 units left)  
-	la	$a0, PADDLE_COORDS	# load paddle coordinate address
-	sw	$t1, 0($a0)		# save new x coordinate
-	
-	# draw paddle		
-	la	$t0, PADDLE_COORDS	# load paddle address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	draw_paddle		# draw new paddle (in new position)
-	
-	b game_loop
-	
-left_paddle_col:
-	lw	$t0, 0($sp)			# load next paddle position
-	
-	li	$t1, 4				# load left wall boundary
-	
-	addi	$sp, $sp, -4			# allocate memory
-	sw	$ra, 0($sp)			# push return address onto stack
-	
-	bge	$t0, $t1, valid_col_check	# left wall check
-	
-	# j check_key
-
-right_paddle_col:
-	lw	$t0, 0($sp)			# load next paddle position
-		
-	li	$t1, 111			# load right wall boundary
-	
-	addi	$sp, $sp, -4			# allocate memory
-	sw	$ra, 0($sp)			# push return address onto stack
-	
-	ble	$t0, $t1, valid_col_check	# right wall check
-	
-	# j check_key
-
-valid_col_check:
-	lw	$ra, 0($sp)		# load return address from stack
-	addi	$sp, $sp, 4
-	jr	$ra			# return
