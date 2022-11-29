@@ -36,6 +36,10 @@ ADDR_KBRD:
 # (width, height)
 .extern	BRICK_DIM	64
 
+# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
+WALLS_X:
+	.word	4, 111
+
 ##############################################################################
 # Mutable Data
 ##############################################################################
@@ -61,7 +65,7 @@ COLOURS:				# require A[0] = A.length - 1
 # Code
 ##############################################################################
 	.text
-	.globl	main
+	.globl	main game_loop press_a press_d
 	
 initialize:
 	li	$t0, 128
@@ -160,7 +164,7 @@ end:	li	$v0, 10
 
 press_a:
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
+	addi	$t1, $a0, -4		# create new paddle position (4 units left)  
 	  
 	addi	$sp, $sp, -4
 	sw	$t1, 0($sp)
@@ -174,7 +178,7 @@ press_a:
 	
 	# move paddle left (new position)
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -1		# create new paddle position (2 units left)  
+	addi	$t1, $a0, -4		# create new paddle position (4 units left)  
 	la	$a0, PADDLE_COORDS	# load paddle coordinate address
 	sw	$t1, 0($a0)		# save new x coordinate
 	
@@ -188,7 +192,7 @@ press_a:
 
 press_d:
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 1		# create new paddle position (2 units left) 
+	addi	$t1, $a0, 4		# create new paddle position (4 units right) 
 	  
 	addi	$sp, $sp, -4
 	sw	$t1, 0($sp)
@@ -202,7 +206,7 @@ press_d:
 	
 	# move paddle right
 	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 1		# create new paddle position (2 units left)  
+	addi	$t1, $a0, 4		# create new paddle position (4 units right)  
 	la	$a0, PADDLE_COORDS	# load paddle coordinate address
 	sw	$t1, 0($a0)		# save new x coordinate
 	
@@ -217,26 +221,26 @@ press_d:
 left_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
 	
-	li	$t1, 4				# load left wall boundary
+	lw	$t1, WALLS_X			# load left wall boundary
 	
 	addi	$sp, $sp, -4			# allocate memory
 	sw	$ra, 0($sp)			# push return address onto stack
 	
 	bge	$t0, $t1, valid_col_check	# left wall check
 	
-	# j check_key
+	j get_key
 
 right_paddle_col:
 	lw	$t0, 0($sp)			# load next paddle position
 		
-	li	$t1, 111			# load right wall boundary
+	lw	$t1, WALLS_X+4			# load right wall boundary
 	
 	addi	$sp, $sp, -4			# allocate memory
 	sw	$ra, 0($sp)			# push return address onto stack
 	
 	ble	$t0, $t1, valid_col_check	# right wall check
 	
-	# j check_key
+	j get_key
 
 valid_col_check:
 	lw	$ra, 0($sp)		# load return address from stack

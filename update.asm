@@ -14,7 +14,7 @@ ADDR_KBRD:
 # Code
 ##############################################################################
 	.text
-	.globl	update_ball get_key check_collision
+	.globl	update_ball get_key key_in check_collision
 
 end:	li	$v0, 10 
 	syscall
@@ -26,12 +26,12 @@ get_key:
     	
     	jr	$ra
 
-key_in:	lw 	$a0, 4($t7)		# load input letter
+key_in:	lw 	$a0, 4($t9)		# load input letter
 
 	beq 	$a0, 0x78, end		# exit when x pressed
 	beq 	$a0, 0x71, end		# exit when q pressed
-	# beq 	$a0, 0x61, press_a	# move paddle left
-	# beq 	$a0, 0x64, press_d	# move paddle right
+	beq 	$a0, 0x61, press_a	# move paddle left
+	beq 	$a0, 0x64, press_d	# move paddle right
 	
 	jr	$ra
 
