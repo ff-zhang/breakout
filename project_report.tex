@@ -29,14 +29,14 @@ Our plan is to have a 512 pixel (wdith) x 256 pixel (height) display while keepi
 \begin{table}[]
 \begin{tabular}{|l|l|l|}
 \hline
-Data Segment     & Address                                                           & Data           \\ \hline
+Data Segment     & Address                                                           & Variable Names           \\ \hline
 IMMUTABLE DATA   &                                                                   &                \\ \hline
                  & 0x10008000 (Address of Bitmap Display)                            & ADDR\_DSPL    \\ \hline
                  & 0xffff0000 (Address of Keyboard)                                  & ADDR\_KBRD     \\ \hline
                  & Takes in 1 address (Display width divided by unit width [in pixels])           & SCREEN\_WIDTH  \\ \hline
                  & Takes in 2 addresses for (length, height) of the paddle                                           & PADDLE\_DIM    \\ \hline
                  & Takes in 1 address for width of wall                                           & WALL\_WIDTH    \\ \hline
-                 & Takes in 2 addresses (left wall x-coordinate, right wall x-coordinate) for paddle collision                                 & WALLS\_X     \\ \hline
+                 & Takes in 2 addresses (left wall x-coordinate, right wall x-coordinate)                                 & WALLS\_X     \\ \hline
                                   & Takes in 1 address for (height) of buffer                                                           & BUFFER\_HEIGHT \\ \hline
                  & Takes in 1 address buffer colour (used for drawing walls, bricks)              & BUFFER\_COLOUR \\ \hline
                                   & Takes in 1 address for the y coordinate of a brick                & BRICKS\_Y      \\ \hline
