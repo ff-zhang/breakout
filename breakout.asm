@@ -75,7 +75,7 @@ initialize:
 	li	$t0, 0xaaaaaa
 	sw	$t0, PADDLE_COLOUR
 	
-	li	$t0, 57 # 63
+	li	$t0, 63
 	sw	$t0, BALL_COORDS
 	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
 	addi	$t0, $t0, -1
@@ -140,9 +140,7 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	# jal get_key
-    	# j press_a
-    	# j press_d
+    	jal get_key
     	
 	# 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
