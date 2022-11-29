@@ -36,10 +36,6 @@ ADDR_KBRD:
 # (width, height)
 .extern	BRICK_DIM	64
 
-# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
-WALLS_X:
-	.word	4, 111
-
 ##############################################################################
 # Mutable Data
 ##############################################################################
@@ -67,7 +63,7 @@ WALLS_X:
 # Code
 ##############################################################################
 	.text
-	.globl	main game_loop press_a press_d
+	.globl	main
 	
 initialize:
 	li	$t0, 128
@@ -137,10 +133,11 @@ main:	jal	draw_paddle		# draw paddle in the center of the screen
 game_loop:
 	# 1a. Check if key has been pressed
     	# 1b. Check which key has been pressed
-    	jal get_key
+    	jal	get_key			# returns key pressed which we leave on the stack
     	
 	# 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
+	jal	update_paddle
 	jal	check_collision
     	jal	update_ball
 	
@@ -154,88 +151,3 @@ game_loop:
 
 end:	li	$v0, 10 
 	syscall				# exit program gracefully
-
-press_a:
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -4		# create new paddle position (4 units left)  
-	  
-	addi	$sp, $sp, -4
-	sw	$t1, 0($sp)
-	jal left_paddle_col
-	
-	# delete previous paddle
-	la	$t0, PADDLE_COORDS	# load paddle coordinate address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	delete_paddle		# delete paddle (paint past paddle position black)
-	
-	# move paddle left (new position)
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, -4		# create new paddle position (4 units left)  
-	la	$a0, PADDLE_COORDS	# load paddle coordinate address
-	sw	$t1, 0($a0)		# save new x coordinate
-	
-	# draw paddle		
-	la	$t0, PADDLE_COORDS	# load paddle address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	draw_paddle		# draw new paddle (in new position)
-	
-	b game_loop	
-
-press_d:
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 4		# create new paddle position (4 units right) 
-	  
-	addi	$sp, $sp, -4
-	sw	$t1, 0($sp)
-	jal right_paddle_col
-
-	# delete previous paddle
-	la	$t0, PADDLE_COORDS	# load paddle coordinate address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	delete_paddle		# delete paddle (paint past paddle position black)
-	
-	# move paddle right
-	lw	$a0, PADDLE_COORDS	# load paddle coordinates
-	addi	$t1, $a0, 4		# create new paddle position (4 units right)  
-	la	$a0, PADDLE_COORDS	# load paddle coordinate address
-	sw	$t1, 0($a0)		# save new x coordinate
-	
-	# draw paddle		
-	la	$t0, PADDLE_COORDS	# load paddle address
-	addi	$sp, $sp, -4		# allocate memory
-	sw	$t0, 0($sp)		# push x coordinate onto stack
-	jal	draw_paddle		# draw new paddle (in new position)
-	
-	b game_loop
-	
-left_paddle_col:
-	lw	$t0, 0($sp)			# load next paddle position
-	
-	lw	$t1, WALLS_X			# load left wall boundary
-	
-	addi	$sp, $sp, -4			# allocate memory
-	sw	$ra, 0($sp)			# push return address onto stack
-	
-	bge	$t0, $t1, valid_col_check	# left wall check
-	
-	j get_key
-
-right_paddle_col:
-	lw	$t0, 0($sp)			# load next paddle position
-		
-	lw	$t1, WALLS_X+4			# load right wall boundary
-	
-	addi	$sp, $sp, -4			# allocate memory
-	sw	$ra, 0($sp)			# push return address onto stack
-	
-	ble	$t0, $t1, valid_col_check	# right wall check
-	
-	j get_key
-
-valid_col_check:
-	lw	$ra, 0($sp)		# load return address from stack
-	addi	$sp, $sp, 4
-	jr	$ra			# return

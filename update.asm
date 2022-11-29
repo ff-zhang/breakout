@@ -10,32 +10,75 @@ ADDR_DSPL:
 ADDR_KBRD:
 	.word	0xffff0000
 
+# x coordinates of the left and right wall (left wall x, right wall x) for paddle collisions
+WALLS_X:
+	.word	4, 111
+
 ##############################################################################
 # Code
 ##############################################################################
 	.text
-	.globl	update_ball get_key key_in check_collision
+	.globl	update_ball get_key key_in check_collision update_paddle
 
 end:	li	$v0, 10 
 	syscall
-	
+
+
+# function
 get_key:		
 	lw 	$t9, ADDR_KBRD		# $t0 = base address for keyboard
-    	lw 	$t4, 0($t9)		# Load first word from keyboard
-    	beq 	$t4, 1, key_in		# If first word 1, key is pressed
-    	
-    	jr	$ra
+    	lw 	$t4, 0($t9)		# load first word from keyboard
+    	beqz 	$t4, n1			# if first word is 0, key was not pressed
 
 key_in:	lw 	$a0, 4($t9)		# load input letter
-
 	beq 	$a0, 0x78, end		# exit when x pressed
 	beq 	$a0, 0x71, end		# exit when q pressed
-	beq 	$a0, 0x61, press_a	# move paddle left
-	beq 	$a0, 0x64, press_d	# move paddle right
 	
+n1:	addi	$sp, $sp, -4
+	sw	$a0, 0($sp)		# return key pressed
+    	jr	$ra
+    	
+
+# function
+update_paddle:
+	sw	$a0, 0($sp)		# return key pressed
+	sw	$ra, 0($sp)		# overwrite it with return address
+	
+	beq 	$a0, 0x61, key_a	# move paddle left
+	beq 	$a0, 0x64, key_d	# move paddle right
+	j	e3
+
+key_a:	jal	delete_paddle		# delete current paddle (paint past paddle position black)
+
+	lw	$a0, PADDLE_COORDS	# load paddle x coordinate
+	addi	$t0, $a0, -4		# create new paddle position (4 units left)  
+	
+left_paddle_collision:
+	lw	$t1, WALLS_X		# load left wall boundary
+	bge	$t0, $t1, next
+	move	$t0, $t1		# next paddle position inside wall
+	j	next
+
+key_d:	jal	delete_paddle		# delete current paddle (paint past paddle position black)
+
+	lw	$a0, PADDLE_COORDS	# load paddle x coordinate
+	addi	$t0, $a0, 4		# create new paddle position (4 units right) 
+
+right_paddle_collision:
+	lw	$t1, WALLS_X+4		# load right wall boundary
+	ble	$t0, $t1, next
+	move	$t0, $t1		# next paddle position inside wall
+
+next:	sw	$t0, PADDLE_COORDS	# move paddle by saving new x coordinate
+	jal	draw_paddle		# draw new paddle in new position
+	j	e3
+	
+e3:	lw	$ra, 0($sp)
+	addi	$sp, $sp, 4
 	jr	$ra
 
 
+# function
 check_collision:
 # updates the direction if the ball would collide with another object
 	addi	$sp, $sp, -16
