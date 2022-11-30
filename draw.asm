@@ -126,12 +126,15 @@ draw_walls:
 	
 	li	$s0, 0xaaaaaa		# set wall colour
 	lw	$s1, WALL_WIDTH		# load wall width
-	addi	$s2, $a0, -2		# set side wall height = paddle y - 2
+	lw	$t0, STATS_HEIGHT
+	sub	$s2, $a0,$t0
+	addi	$s2, $s2, -2		# set side wall height = paddle y - STATS_HEIGHT - 2
 	
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	move	$a0, $zero
-	move	$a1, $zero
+	lw	$t1, STATS_HEIGHT	# extra space for stats
+	move	$a1, $t1
 	move	$a2, $s1
 	move	$a3, $s2
 	jal	draw_rectangle		# draw left wall
@@ -141,7 +144,8 @@ draw_walls:
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	move	$a0, $t0
-	move	$a1, $zero
+	lw	$t1, STATS_HEIGHT	# extra space for stats
+	move	$a1, $t1
 	move	$a2, $s1
 	move	$a3, $s2
 	jal	draw_rectangle		# draw right wall
@@ -150,7 +154,8 @@ draw_walls:
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push wall colour onto stack
 	move	$a0, $zero
-	move	$a1, $zero
+	lw	$t1, STATS_HEIGHT	# extra space for stats
+	move	$a1, $t1
 	move	$a2, $t0
 	move	$a3, $s1
 	jal	draw_rectangle		# draw ceiling
@@ -161,7 +166,8 @@ draw_walls:
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push buffer colour onto stack
 	move	$a0, $zero
-	move	$a1, $s2
+	lw	$t1, STATS_HEIGHT	# extra space for stats
+	add	$a1, $s2, $t1
 	move	$a2, $s1
 	move	$a3, $t2
 	jal	draw_rectangle		# draw left buffer
@@ -172,7 +178,8 @@ draw_walls:
 	addi	$sp, $sp, -4
 	sw	$s0, 0($sp)		# push buffer colour onto stack
 	move	$a0, $t0
-	move	$a1, $s2
+	lw	$t1, STATS_HEIGHT	# extra space for stats
+	add	$a1, $s2, $t1
 	move	$a2, $s1
 	move	$a3, $t1
 	jal	draw_rectangle		# draw right buffer

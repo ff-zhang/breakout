@@ -29,6 +29,8 @@ ADDR_KBRD:
 
 .extern BALL_COLOUR	32
 
+.extern	STATS_HEIGHT	32
+
 .extern	WALL_WIDTH	32
 
 .extern BUFFER_COLOUR	32
@@ -70,7 +72,7 @@ initialize:
 	sw	$t0, SCREEN_WIDTH	# display width in pixels divided by unit width in pixels
 
 	li	$t0, 57
-	li	$t1, 55
+	li	$t1, 61	# was 55
 	sw	$t0, PADDLE_COORDS	# paddle x s.t. it is in the center of the scrren
 	sw	$t1, PADDLE_COORDS+4
 	
@@ -88,6 +90,9 @@ initialize:
 	li	$t0, 2
 	sw	$t0, DIRECTION		# initially the ball goes straigt up
 	
+	li	$t0, 9
+	sw	$t0, STATS_HEIGHT
+	
 	li	$t0, 4
 	sw	$t0, WALL_WIDTH
 	
@@ -99,7 +104,7 @@ initialize:
 	sw	$t0, BRICK_DIM
 	sw	$t1, BRICK_DIM+4
 	
-	li	$t0, 12
+	li	$t0, 16
 	sw	$t0, BRICKS_Y
 	
 	li	$t0, 6
