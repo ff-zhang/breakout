@@ -65,7 +65,7 @@ ADDR_KBRD:
 # Code
 ##############################################################################
 	.text
-	.globl	main
+	.globl	main game_loop
 	
 initialize:
 	li	$t0, 128
