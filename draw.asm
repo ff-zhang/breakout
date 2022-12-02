@@ -19,8 +19,8 @@ BUFFER_HEIGHT:
 # Code
 ##############################################################################
 	.text
-	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball delete_brick get_pixel_address
-	.globl	draw_0 draw_1 draw_2 draw_3 draw_4 draw_5 draw_6 draw_7 draw_8 draw_9
+	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball update_brick get_pixel_address
+	.globl	draw_score
 	
 	li	$v0, 10 
 	syscall
@@ -273,13 +273,15 @@ draw_brick:
 	jr	$ra			# return
 
 
-delete_brick:
+update_brick:
 	lw	$a0, 0($sp)		# pop i from stack
 	lw	$a1, 4($sp)		# pop j from stack
 	addi	$sp, $sp, 8
 	
-	addi	$sp, $sp, -4
+	addi	$sp, $sp, -12
 	sw	$ra, 0($sp)
+	sw	$s0, 4($sp)
+	sw	$s1, 8($sp)
 	
 	lw	$t6, BRICKS_Y
 	lw	$t7, WALL_WIDTH		# load wall width
@@ -287,19 +289,43 @@ delete_brick:
 	lw	$t9, BRICK_DIM+4	# load brick height
 	
 	mulo	$t1, $a0, $t8
-	add	$t1, $t1, $t7		# x coordinate of (i, j) brick
+	add	$s0, $t1, $t7		# x coordinate of (i, j) brick
 	mulo	$t2, $a1, $t9
-	add	$t2, $t2, $t6		# y coordinate of (i, j) brick
+	add	$s1, $t2, $t6		# y coordinate of (i, j) brick
 	
-	addi	$sp, $sp, -12
-	li	$t0, 0
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	sw	$s1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	lw	$v0, 0($v0)		# load colour of brick
+	addi	$sp, $sp, 4
+	
+col1:	bne	$v0, 0xff0000, col2	# check if brick is red
+	li	$t0, 0xaa0000
+	j	draw
+	
+col2:	bne	$v0, 0x00ff00, col3	# check if brick is green
+	li	$t0, 0x00aa00
+	j	draw
+	
+col3:	bne	$v0, 0x0000ff, dstr	# check if brick is blue
+	li	$t0, 0x0000aa
+	j	draw
+	
+dstr:	move	$t0, $zero
+	j	draw
+	
+draw:	addi	$sp, $sp, -12
 	sw	$t0, 0($sp)		# push brick colour onto stack
-	sw	$t1, 4($sp)		# push x coordinate onto stack
-	sw	$t2, 8($sp)		# push y coordinate onto stack
+	sw	$s0, 4($sp)		# push x coordinate onto stack
+	sw	$s1, 8($sp)		# push y coordinate onto stack
 	jal	draw_brick
 	
 	lw	$ra, 0($sp)
-	addi	$sp, $sp, 4
+	sw	$s0, 4($sp)
+	sw	$s1, 8($sp)
+	addi	$sp, $sp, 12
 	jr	$ra	
 
 
@@ -348,6 +374,90 @@ n1:	lw	$ra, 4($sp)
 	lw	$s0, 8($sp)		# restore $s0 value
 	addi	$sp, $sp, 12
 	jr	$ra			# return
+	
+	
+# function
+draw_score:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, -6
+	li	$a1, 2
+	lw	$t0, SCORE
+	rem	$a2, $t0, 10
+	jal	draw_digit
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, -10
+	li	$a1, 2
+	lw	$t0, SCORE
+	div	$t0, $t0, 10
+	rem	$a2, $t0, 100
+	jal	draw_digit
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, -14
+	li	$a1, 2
+	lw	$t0, SCORE
+	div	$a2, $t0, 100
+	jal	draw_digit
+	
+	lw	$ra, 0($sp)
+	addi	$sp, $sp, 4
+	jr	$ra
+	
+	
+# parameters
+#	($a0) x - top left corner x coordinate
+# 	($a1) y - top left corner y coordinate
+#	($a2) nnumber to draw
+draw_digit:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+case0:	bne	$a2, 0, case1
+	jal	draw_0
+	j	dflt1
+	
+case1:	bne	$a2, 1, case2
+	jal	draw_1
+	j	dflt1
+	
+case2:	bne	$a2, 2, case3
+	jal	draw_2
+	j	dflt1
+	
+case3:	bne	$a2, 3, case4
+	jal	draw_3
+	j	dflt1
+	
+case4:	bne	$a2, 4, case5
+	jal	draw_4
+	j	dflt1
+	
+case5:	bne	$a2, 5, case6
+	jal	draw_5
+	j	dflt1
+	
+case6:	bne	$a2, 6, case7
+	jal	draw_6
+	j	dflt1
+	
+case7:	bne	$a2, 7, case8
+	jal	draw_7
+	j	dflt1
+	
+case8:	bne	$a2, 8, case9
+	jal	draw_8
+	j	dflt1
+	
+case9:	jal	draw_9
+	j	dflt1
+	
+dflt1:	lw	$ra, 0($sp)
+	addi	$sp, $sp, 4
+	jr	$ra
 	
 
 # parameters

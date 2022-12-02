@@ -256,7 +256,13 @@ c2:	lw	$t0, WALL_WIDTH
 	addi	$sp, $sp, -8
 	sw	$s0, 0($sp)
 	sw	$s1, 4($sp)
-	jal	delete_brick
+	jal	update_brick
+	
+update_score:
+	lw	$t9, SCORE
+	addi	$t9, $t9, 1
+	sw	$t9, SCORE
+	jal	draw_score
 	
 	j	return
 	

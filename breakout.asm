@@ -61,6 +61,8 @@ ADDR_KBRD:
 # COLOURS:				# require A[0] = A.length - 1
 #	.word	6, 0xff0000, 0xff8000, 0xffff00, 0x00ff00, 0x0000ff, 0x8000ff
 
+.extern	SCORE		32
+
 ##############################################################################
 # Code
 ##############################################################################
@@ -104,36 +106,38 @@ initialize:
 	sw	$t0, BRICK_DIM
 	sw	$t1, BRICK_DIM+4
 	
-	li	$t0, 18
+	li	$t0, 20
 	sw	$t0, BRICKS_Y
 	
 	li	$t0, 6
 	sw	$t0, COLOURS
 	li	$t1, 0xff0000
 	sw	$t1, COLOURS+4
-	li	$t2, 0xff8000
+	li	$t2, 0xaa0000
 	sw	$t2, COLOURS+8
-	li	$t3, 0xffff00
+	li	$t3, 0x00ff00
 	sw	$t3, COLOURS+12
-	li	$t4, 0x00ff00
+	li	$t4, 0x00aa00
 	sw	$t4, COLOURS+16
 	li	$t5, 0x0000ff
 	sw	$t5, COLOURS+20
-	li	$t6, 0x8000ff
+	li	$t6, 0x0000aa
 	sw	$t6, COLOURS+24
 
 	lw	$t0, COLOURS
 	sw	$t0, BRICKS		# store the number of bricks in BRICKS[0]
 	li	$t1, 15
 	sw	$t1, BRICKS+4		# store the number of bricks per row in BRICKS[1]
+	
+	sw	$zero, SCORE
 	j	main	
 	
 	# Run the Brick Breaker game.
 main:	jal	draw_paddle		# draw paddle in the center of the screen
 	jal	draw_ball		# draw the ball on the center of the paddle
 	jal	draw_walls		# draw the walls around the play area
-	jal	draw_bricks	
-
+	jal	draw_bricks
+	jal	draw_score
 
 game_loop:
 	# 1a. Check if key has been pressed
