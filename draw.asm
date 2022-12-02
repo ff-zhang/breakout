@@ -20,6 +20,7 @@ BUFFER_HEIGHT:
 ##############################################################################
 	.text
 	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball delete_brick get_pixel_address
+	.globl	draw_0 draw_1 draw_2 draw_3 draw_4 draw_5 draw_6 draw_7 draw_8 draw_9
 	
 	li	$v0, 10 
 	syscall
@@ -339,8 +340,7 @@ l1:	mulo	$t1, $a2, $a3		# set loop condition = number of pixels in the rectangle
 
 	lw	$t7, 0($sp)
 	sw	$t7, 0($t4)		# store colour at memory address of pixel (x', y')
-	
-	
+
 u1:	addi	$s0, $s0, 1		# i++
 	j	l1
 
@@ -348,6 +348,476 @@ n1:	lw	$ra, 4($sp)
 	lw	$s0, 8($sp)		# restore $s0 value
 	addi	$sp, $sp, 12
 	jr	$ra			# return
+	
+
+# parameters
+#	($a0) x - top left corner x coordinate
+# 	($a1) y - top left corner y coordinate
+draw_0: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	clear_digit		# pass arguments from draw_0 to clear_digit
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	move	$a1, $s1
+	li	$a2, 1
+	li	$a3, 5
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	addi	$a0, $s0, 2
+	move	$a1, $s1
+	li	$a2, 1
+	li	$a3, 5
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 1
+	sw	$t0, 0($sp)
+	sw	$s1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 1
+	sw	$t0, 0($sp)
+	addi	$t1, $s1, 4
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_1:	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	clear_digit		# pass arguments from draw_1 to clear_digit
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	addi	$a0, $s0, 1
+	move	$a1, $s1
+	li	$a2, 1
+	li	$a3, 4
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	addi	$a1, $s1, 4
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_2: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	clear_digit		# pass arguments from draw_2 to clear_digit
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	move	$a1, $s1
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	addi	$a1, $s1, 2
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	addi	$a1, $s1, 4
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 2
+	sw	$t0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 3
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_3: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	clear_digit		# pass arguments from draw_3 to clear_digit
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	move	$a1, $s1
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	addi	$a1, $s1, 2
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	addi	$a1, $s1, 4
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 2
+	sw	$t0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 2
+	sw	$t0, 0($sp)
+	addi	$t1, $s1, 3
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_4: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	clear_digit		# pass arguments from draw_4 to clear_digit
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	move	$a1, $s1
+	li	$a2, 1
+	li	$a3, 3
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	addi	$a0, $s0, 2
+	move	$a1, $s1
+	li	$a2, 1
+	li	$a3, 5
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 1
+	sw	$t0, 0($sp)
+	addi	$t1, $s1, 2
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_5: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	clear_digit		# pass arguments from draw_5 to clear_digit
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	move	$a1, $s1
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	addi	$a1, $s1, 2
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	addi	$a1, $s1, 4
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 2
+	sw	$t0, 0($sp)
+	addi	$t1, $s1, 3
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_6: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	draw_5
+	
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 3
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_7: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	clear_digit		# pass arguments from draw_7 to clear_digit
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	move	$a0, $s0
+	move	$a1, $s1
+	li	$a2, 3
+	li	$a3, 1
+	jal	draw_rectangle
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xffffff
+	sw	$t0, 0($sp)		# push colour white onto stack
+	addi	$a0, $s0, 2
+	addi	$a1, $s1, 1
+	li	$a2, 1
+	li	$a3, 4
+	jal	draw_rectangle
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_8: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	draw_6
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 2
+	sw	$t0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_9: addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	jal	draw_4
+	
+	addi	$sp, $sp, -8
+	addi	$t0, $s0, 1
+	sw	$t0, 0($sp)
+	sw	$s1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xffffff
+	sw	$t1, 0($v0)
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+
+# parameters
+#	($a0) x - top left corner x coordinate
+# 	($a1) y - top left corner y coordinate
+clear_digit:
+	addi	$sp, $sp, -8
+	sw	$ra, 4($sp)		# push return address onto stack
+	sw	$zero, 0($sp)		# push colour black onto stack
+	li	$a2, 3			# digit is 3 pixels wide
+	li	$a3, 5			# digit is 5 pixels tall
+	jal	draw_rectangle
+	
+	lw	$ra, 0($sp)		# pop return address off stack
+	addi	$sp, $sp, 4
+	jr	$ra
 
 
 # DO NOT CHANGE ANY ARGUMENT REGISTERS
