@@ -18,30 +18,26 @@ WALLS_X:
 # Code
 ##############################################################################
 	.text
-	.globl	update_ball get_key key_in check_collision update_paddle
+	.globl	update_ball get_key key_in check_collision update_paddle pause
 
 end:	li	$v0, 10 
 	syscall
 
-pause:					# pause loop
-	jal	check_unpause
-	
-	sw	$a0, 0($sp)		# return key pressed
-	sw	$ra, 0($sp)		# overwrite it with return address
-	
-	li	$v0, 32
+
+# pause loop
+pause:	li	$v0, 32	
 	li	$a1, 100		# add  delay
 	syscall
 	
-	j 	pause			# restart pause loop
+	lw 	$t9, ADDR_KBRD		# $t0 = base address for keyboard
+    	lw 	$t4, 0($t9)		# load first word from keyboard
+    	beqz 	$t4, pause	# if first word is 0, key was not pressed so repeat loop
 	
-check_unpause:				# returns to game when any key is pressed 
-	lw 	$t9, ADDR_KBRD			# $t0 = base address for keyboard
-    	lw 	$t4, 0($t9)			# load first word from keyboard
-    	beqz 	$t4, n1				# if first word is 0, key was not pressed
+	lw 	$t0, 4($t9)		# load input letter
 	
-	lw 	$a0, 4($t9)			# load input letter
-	jal 	game_loop			
+	addi	$sp, $sp, -4
+	sw	$a0, 0($sp)		# return key pressed
+    	jr	$ra	
 
 
 # function
@@ -53,7 +49,6 @@ get_key:
 key_in:	lw 	$a0, 4($t9)		# load input letter
 	beq 	$a0, 0x78, end		# exit when x pressed
 	beq 	$a0, 0x71, end		# exit when q pressed
-	beq 	$a0, 0x70, pause	# pause when p pressed
 	
 n1:	addi	$sp, $sp, -4
 	sw	$a0, 0($sp)		# return key pressed

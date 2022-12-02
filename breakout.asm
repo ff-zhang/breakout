@@ -65,7 +65,7 @@ ADDR_KBRD:
 # Code
 ##############################################################################
 	.text
-	.globl	main game_loop
+	.globl	main
 	
 initialize:
 	li	$t0, 128
@@ -140,9 +140,12 @@ game_loop:
     	# 1b. Check which key has been pressed
     	jal	get_key			# returns key pressed which we leave on the stack
     	
+	bne 	$a0, 0x70, update	# pause when p pressed
+	jal	pause
+    	
 	# 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
-	jal	update_paddle
+update:	jal	update_paddle
 	jal	check_collision
     	jal	update_ball
 	
