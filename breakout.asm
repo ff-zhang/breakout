@@ -72,7 +72,7 @@ initialize:
 	sw	$t0, SCREEN_WIDTH	# display width in pixels divided by unit width in pixels
 
 	li	$t0, 57
-	li	$t1, 61	# was 55
+	li	$t1, 61
 	sw	$t0, PADDLE_COORDS	# paddle x s.t. it is in the center of the scrren
 	sw	$t1, PADDLE_COORDS+4
 	
@@ -87,8 +87,8 @@ initialize:
 	
 	li	$t0, 0xffffff
 	sw	$t0, BALL_COLOUR
-	li	$t0, 2
-	sw	$t0, DIRECTION		# initially the ball goes straigt up
+	li	$t0, 0
+	sw	$t0, DIRECTION		# initially the ball does not move
 	
 	li	$t0, 9
 	sw	$t0, STATS_HEIGHT
@@ -104,7 +104,7 @@ initialize:
 	sw	$t0, BRICK_DIM
 	sw	$t1, BRICK_DIM+4
 	
-	li	$t0, 16
+	li	$t0, 18
 	sw	$t0, BRICKS_Y
 	
 	li	$t0, 6
@@ -140,9 +140,16 @@ game_loop:
     	# 1b. Check which key has been pressed
     	jal	get_key			# returns key pressed which we leave on the stack
     	
-	bne 	$a0, 0x70, update	# pause when p pressed
+	bne 	$a0, 0x70, start	# pause when p pressed
 	jal	pause
-    	
+	
+start:	lw	$t1, DIRECTION
+	bnez	$t1, update		# check if ball is moving
+	lw	$t0, 0($sp)		# load pressed key
+	bne	$t0, 0x20, sleep	# check if space was input
+	li	$t2, 2
+	sw	$t2, DIRECTION		# set ball to moving N
+		
 	# 2a. Check for collisions
 	# 2b. Update locations (paddle, ball)
 update:	jal	update_paddle
@@ -150,7 +157,7 @@ update:	jal	update_paddle
     	jal	update_ball
 	
 	# 4. Sleep
-	li	$v0, 32
+sleep:	li	$v0, 32
 	li	$a0, 40		# add 2/3 ms delay
 	syscall
 

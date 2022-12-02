@@ -350,7 +350,7 @@ n1:	lw	$ra, 4($sp)
 	jr	$ra			# return
 
 
-# DO NOT CHANGE ANY ADDRESS REGISTERS
+# DO NOT CHANGE ANY ARGUMENT REGISTERS
 get_pixel_address:
 	lw	$t0, SCREEN_WIDTH	# load screen width
 	lw	$t1, ADDR_DSPL

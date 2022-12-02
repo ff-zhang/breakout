@@ -25,18 +25,21 @@ end:	li	$v0, 10
 
 
 # pause loop
-pause:	li	$v0, 32	
+pause:	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)	
+
+p1:	li	$v0, 32	
 	li	$a1, 100		# add  delay
 	syscall
 	
-	lw 	$t9, ADDR_KBRD		# $t0 = base address for keyboard
-    	lw 	$t4, 0($t9)		# load first word from keyboard
-    	beqz 	$t4, pause	# if first word is 0, key was not pressed so repeat loop
+	jal	get_key
+	lw	$v0, 0($sp)		# store key pressed
+	addi	$sp, $sp, 4
 	
-	lw 	$t0, 4($t9)		# load input letter
-	
-	addi	$sp, $sp, -4
-	sw	$a0, 0($sp)		# return key pressed
+	beq	$v0, -1, p1		# check if key was not pressed
+    	
+    	lw	$ra, 0($sp)
+    	sw	$v0, 4($sp)		# overwrite $ra with pressed key
     	jr	$ra	
 
 
@@ -44,11 +47,15 @@ pause:	li	$v0, 32
 get_key:		
 	lw 	$t9, ADDR_KBRD		# $t0 = base address for keyboard
     	lw 	$t4, 0($t9)		# load first word from keyboard
-    	beqz 	$t4, n1			# if first word is 0, key was not pressed
+    	beq 	$t4, 1, key_in		# if first word is 1, key was pressed
+    	
+no_key:	li	$a0, -1			# if no key was pressed, we want to return -1
+	j	n1
 
 key_in:	lw 	$a0, 4($t9)		# load input letter
 	beq 	$a0, 0x78, end		# exit when x pressed
 	beq 	$a0, 0x71, end		# exit when q pressed
+	j	n1
 	
 n1:	addi	$sp, $sp, -4
 	sw	$a0, 0($sp)		# return key pressed
@@ -59,6 +66,9 @@ n1:	addi	$sp, $sp, -4
 update_paddle:
 	sw	$a0, 0($sp)		# return key pressed
 	sw	$ra, 0($sp)		# overwrite it with return address
+	
+	lw	$t0, DIRECTION
+	beqz	$t0, e3			# cannot move paddle if ball is not moving
 	
 	beq 	$a0, 0x61, key_a	# move paddle left
 	beq 	$a0, 0x64, key_d	# move paddle right
