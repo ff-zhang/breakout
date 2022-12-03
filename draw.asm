@@ -19,7 +19,7 @@ BUFFER_HEIGHT:
 # Code
 ##############################################################################
 	.text
-	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball update_brick get_pixel_address
+	.globl	draw_paddle draw_ball draw_walls draw_bricks delete_paddle delete_ball update_brick get_pixel_address draw_heart1 draw_heart2 draw_heart3 delete_heart1 delete_heart2 delete_heart3
 	.globl	draw_score
 	
 	li	$v0, 10 
@@ -112,6 +112,7 @@ delete_ball:
 	sw	$t0, BALL_COLOUR	# restore original ball colour
 	addi	$sp, $sp, 8
 	jr	$ra			# return
+	
 
 
 # parameters
@@ -928,6 +929,573 @@ clear_digit:
 	lw	$ra, 0($sp)		# pop return address off stack
 	addi	$sp, $sp, 4
 	jr	$ra
+
+draw_heart1:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, 4
+	li	$a1, 1
+	
+	# row 1
+	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position
+	move	$a1, $s1		# y position
+	li	$a2, 5			# 5 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle	
+	
+	# paint black on top
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0x000000		# load colour black
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push black onto stack
+	addi	$a0, $s0, 1		# x position - move right 1 coordinate
+	move	$a1, $s1		# y position
+	li	$a2, 3			# 3 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 2
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, -1		# x position - move left 1 coordinate
+	addi	$a1, $s1, 1		# y position - move down 1 coordinate
+	li	$a2, 7			# 7 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# black out pixel
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0x000000		# load colour black
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push black onto stack
+	addi	$a0, $s0, 2		# x position - move right 1 coordinate
+	addi	$a1, $s1, 1		# y position
+	li	$a2, 1			# 1 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 3
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position - move left 1 coordinate
+	addi	$a1, $s1, 2		# y position - move down 2 coordinates
+	li	$a2, 5			# 5 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 4
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, 1		# x position - move right 1 coordinate
+	addi	$a1, $s1, 3		# y position - move down 3 coordinates
+	li	$a2, 3			# 3 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 5
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, 2		# x position - move right 1 coordinate
+	addi	$a1, $s1, 4		# y position - move down 3 coordinates
+	li	$a2, 1			# 1 pixel long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+		
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_heart2:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, 12
+	li	$a1, 1
+	
+	# row 1
+	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position
+	move	$a1, $s1		# y position
+	li	$a2, 5			# 5 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle	
+	
+	# paint black on top
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0x000000		# load colour black
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push black onto stack
+	addi	$a0, $s0, 1		# x position - move right 1 coordinate
+	move	$a1, $s1		# y position
+	li	$a2, 3			# 3 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 2
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, -1		# x position - move left 1 coordinate
+	addi	$a1, $s1, 1		# y position - move down 1 coordinate
+	li	$a2, 7			# 7 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# black out pixel
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0x000000		# load colour black
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push black onto stack
+	addi	$a0, $s0, 2		# x position - move right 1 coordinate
+	addi	$a1, $s1, 1		# y position
+	li	$a2, 1			# 1 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 3
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position - move left 1 coordinate
+	addi	$a1, $s1, 2		# y position - move down 2 coordinates
+	li	$a2, 5			# 5 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 4
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, 1		# x position - move right 1 coordinate
+	addi	$a1, $s1, 3		# y position - move down 3 coordinates
+	li	$a2, 3			# 3 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 5
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, 2		# x position - move right 1 coordinate
+	addi	$a1, $s1, 4		# y position - move down 3 coordinates
+	li	$a2, 1			# 1 pixel long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+		
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+draw_heart3:
+	addi	$sp, $sp, -4
+	sw	$ra, 0($sp)		# push return address onto stack
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, 20
+	li	$a1, 1
+	
+	# row 1
+	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position
+	move	$a1, $s1		# y position
+	li	$a2, 5			# 5 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle	
+	
+	# paint black on top
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0x000000		# load colour black
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push black onto stack
+	addi	$a0, $s0, 1		# x position - move right 1 coordinate
+	move	$a1, $s1		# y position
+	li	$a2, 3			# 3 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 2
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, -1		# x position - move left 1 coordinate
+	addi	$a1, $s1, 1		# y position - move down 1 coordinate
+	li	$a2, 7			# 7 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# black out pixel
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0x000000		# load colour black
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push black onto stack
+	addi	$a0, $s0, 2		# x position - move right 1 coordinate
+	addi	$a1, $s1, 1		# y position
+	li	$a2, 1			# 1 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 3
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position - move left 1 coordinate
+	addi	$a1, $s1, 2		# y position - move down 2 coordinates
+	li	$a2, 5			# 5 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 4
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, 1		# x position - move right 1 coordinate
+	addi	$a1, $s1, 3		# y position - move down 3 coordinates
+	li	$a2, 3			# 3 pixels long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+	
+	# row 5
+	addi	$sp, $sp, -8
+	sw	$s0, 0($sp)
+	addi	$t1, $s1, 1
+	sw	$t1, 4($sp)
+	jal	get_pixel_address
+	lw	$v0, 0($sp)
+	addi	$sp, $sp, 4
+	li	$t1, 0xff0000
+	sw	$t1, 0($v0)
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0xff0000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	addi	$a0, $s0, 2		# x position - move right 1 coordinate
+	addi	$a1, $s1, 4		# y position - move down 3 coordinates
+	li	$a2, 1			# 1 pixel long
+	li	$a3, 1			# 1 pixel high
+	jal	draw_rectangle
+		
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	jr	$ra
+
+delete_heart1:
+	#addi	$sp, $sp, -4
+	#sw	$ra, 0($sp)		# push return address onto stack
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, 3
+	li	$a1, 1
+	
+	addi	$sp, $sp, -8
+	#sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 0($sp)		# push old $s0 value on stack
+	sw	$s1, 4($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position
+	move	$a1, $s1		# y position
+	li	$a2, 8			# 5 pixels long
+	li	$a3, 5			# 1 pixel high
+	jal	draw_rectangle	
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	#jr	$ra
+	
+	li	$t1, 0
+	sw	$t1, LIVES
+	
+	# re-initialize game and ball & paddle
+	j	end
+
+delete_heart2:
+	#addi	$sp, $sp, -4
+	#sw	$ra, 0($sp)		# push return address onto stack
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, 11
+	li	$a1, 1
+	
+	addi	$sp, $sp, -8
+	#sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 0($sp)		# push old $s0 value on stack
+	sw	$s1, 4($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position
+	move	$a1, $s1		# y position
+	li	$a2, 8			# 5 pixels long
+	li	$a3, 5			# 1 pixel high
+	jal	draw_rectangle	
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	#jr	$ra
+		
+	li	$t1, 0
+	sw	$t1, LIVES
+	
+	# re-initialize game and ball & paddle
+	j	restart_game
+
+delete_heart3:
+	#addi	$sp, $sp, -4
+	#sw	$ra, 0($sp)		# push return address onto stack
+	
+	lw	$t0, SCREEN_WIDTH
+	addi	$a0, $t0, 19
+	li	$a1, 1
+	
+	addi	$sp, $sp, -8
+	#sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 0($sp)		# push old $s0 value on stack
+	sw	$s1, 4($sp)		# push old $s1 value on stack
+	
+	move	$s0, $a0		# store x coordinate
+	move	$s1, $a1		# store y coordinate
+	
+	addi	$sp, $sp, -4
+	li	$t0, 0x000000
+	sw	$t0, 0($sp)		# push colour red onto stack
+	move	$a0, $s0		# x position
+	move	$a1, $s1		# y position
+	li	$a2, 8			# 5 pixels long
+	li	$a3, 5			# 1 pixel high
+	jal	draw_rectangle	
+	
+	lw	$ra, 0($sp)		# get return address from stack
+	lw	$s0, 4($sp)		# pop old $s0 value from stack
+	lw	$s1, 8($sp)		# pop old $s1 value from stack
+	addi	$sp, $sp, 12
+	#jr	$ra
+		
+	li	$t1, 1
+	sw	$t1, LIVES
+	
+	# re-initialize game and ball & paddle
+	j	restart_game
 
 
 # DO NOT CHANGE ANY ARGUMENT REGISTERS

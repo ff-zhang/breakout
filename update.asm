@@ -126,7 +126,7 @@ check:	jal	next_location
 	lw	$s0, 0($sp)		# save predicted x coordinate
 	lw	$s1, 4($sp)		# save predicted y coordinate
 	
-	bge	$s1, 64, end		# end if ball is off screen (screen height is 64)
+	bge	$s1, 64, check_lives		# check lives before ending if ball is off screen (screen height is 64)
 	
 	# next_location returns (x, y) on the stack but we can immideatly pass it to get_pixel_address
 	jal	get_pixel_address
@@ -265,7 +265,37 @@ update_score:
 	jal	draw_score
 	
 	j	return
+
+check_lives:
+	li	$v0, 32
+	li	$a0, 400		# time delay
+	syscall
 	
+	#  delete previous ball and paddle
+	jal 	delete_ball
+	jal	delete_paddle
+	
+	li	$v0, 32
+	li	$a0, 40		# time delay
+	syscall
+	
+	lw	$t4, LIVES		# load $ of lives
+	
+	# delete 1 heart ( - 1 life)
+	li	$t3, 2
+	li	$t2, 1
+	li	$t1, 0
+	
+	beq 	$t4, $t3, delete_heart3	# 2 hearts left
+	
+	beq 	$t4, $t2, delete_heart2	# 1 heart left
+	
+	beq 	$t4, $t1, delete_heart1	# no more lives
+	
+	# if lives = 0, end game
+	# beqz 	$t3, end
+
+
 return:	jal	next_location
 	jal	get_pixel_address
 	lw	$t0, 0($sp)		# get memory address of predicted pixel
@@ -301,7 +331,6 @@ update_ball:
 	lw	$ra, 0($sp)
 	addi	$sp, $sp, 4
 	jr	$ra
-
 
 # function
 next_location:
