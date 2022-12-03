@@ -29,18 +29,18 @@ pause:	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)	
 
 p1:	li	$v0, 32	
-	li	$a1, 100		# add  delay
+	li	$a1, 70		# add  delay
 	syscall
 	
-	jal	get_key
-	lw	$v0, 0($sp)		# store key pressed
-	addi	$sp, $sp, 4
+	lw 	$t9, ADDR_KBRD		# load address of keyboard
+	lw	$t4, 0($t9)		# store key pressed
 	
-	beq	$v0, -1, p1		# check if key was not pressed
+	beqz	$t4, p1			# check if key was not pressed
+    	lw	$a0, 4($sp)		# load input key
     	
     	lw	$ra, 0($sp)
-    	sw	$v0, 4($sp)		# overwrite $ra with pressed key
-    	jr	$ra	
+    	sw	$a0, 0($sp)		# overwrite $ra with pressed key
+    	jr	$ra			# return
 
 
 # function
