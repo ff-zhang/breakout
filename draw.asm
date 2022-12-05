@@ -52,7 +52,7 @@ draw_paddle:
 	addi	$sp, $sp, 4
 	jr	$ra			# return
 
-
+	
 # parameters
 #	coords - pointer to the (x, y) coordinate of the top left corner of the paddle
 delete_paddle:				# same thing as draw_paddle but colour is black
@@ -350,7 +350,7 @@ draw_rectangle:
 	
 	add	$s0, $zero, $zero	# initialize loop variable i = 0
 l1:	mulo	$t1, $a2, $a3		# set loop condition = number of pixels in the rectangle
-	beq	$s0, $t1, n1
+	beq	$s0, $t1, n1a
 	rem	$t2, $s0, $a2		# calculate x offset
 	add	$t2, $a0, $t2		# calculate x'
 	div	$t3, $s0, $a2		# calculate y offset
@@ -371,7 +371,7 @@ l1:	mulo	$t1, $a2, $a3		# set loop condition = number of pixels in the rectangle
 u1:	addi	$s0, $s0, 1		# i++
 	j	l1
 
-n1:	lw	$ra, 4($sp)
+n1a:	lw	$ra, 4($sp)
 	lw	$s0, 8($sp)		# restore $s0 value
 	addi	$sp, $sp, 12
 	jr	$ra			# return
@@ -930,6 +930,26 @@ clear_digit:
 	addi	$sp, $sp, 4
 	jr	$ra
 
+
+# DO NOT CHANGE ANY ARGUMENT REGISTERS
+get_pixel_address:
+	lw	$t0, SCREEN_WIDTH	# load screen width
+	lw	$t1, ADDR_DSPL
+
+	lw	$t2, 0($sp)		# pop x from stack
+	lw	$t3, 4($sp)		# pop y from stack
+	addi	$sp, $sp, 8
+
+	mulo	$t3, $t0, $t3		# find position of leftmost pixel of row y
+	add	$t2, $t2, $t3		# find position of pixel (x, y)
+	sll	$t2, $t2, 2		# calculate offset of pixel (x, y) memory address from base
+	add 	$t2, $t1, $t2		# get ptr to memory address of pixel (x', y')
+	
+	addi	$sp, $sp, -4
+	sw	$t2, 0($sp)
+	jr	$ra
+
+
 draw_heart1:
 	addi	$sp, $sp, -4
 	sw	$ra, 0($sp)		# push return address onto stack
@@ -1387,18 +1407,15 @@ draw_heart3:
 	jr	$ra
 
 delete_heart1:
-	#addi	$sp, $sp, -4
-	#sw	$ra, 0($sp)		# push return address onto stack
+	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
 	
 	lw	$t0, SCREEN_WIDTH
 	addi	$a0, $t0, 3
 	li	$a1, 1
 	
-	addi	$sp, $sp, -8
-	#sw	$ra, 0($sp)		# push return address onto stack
-	sw	$s0, 0($sp)		# push old $s0 value on stack
-	sw	$s1, 4($sp)		# push old $s1 value on stack
-	
 	move	$s0, $a0		# store x coordinate
 	move	$s1, $a1		# store y coordinate
 	
@@ -1407,35 +1424,29 @@ delete_heart1:
 	sw	$t0, 0($sp)		# push colour red onto stack
 	move	$a0, $s0		# x position
 	move	$a1, $s1		# y position
-	li	$a2, 8			# 5 pixels long
-	li	$a3, 5			# 1 pixel high
+	li	$a2, 8
+	li	$a3, 5
 	jal	draw_rectangle	
+	
+	li	$t1, 0
+	sw	$t1, LIVES
 	
 	lw	$ra, 0($sp)		# get return address from stack
 	lw	$s0, 4($sp)		# pop old $s0 value from stack
 	lw	$s1, 8($sp)		# pop old $s1 value from stack
 	addi	$sp, $sp, 12
-	#jr	$ra
-	
-	li	$t1, 0
-	sw	$t1, LIVES
-	
-	# re-initialize game and ball & paddle
-	j	end
+	jr	$ra
 
 delete_heart2:
-	#addi	$sp, $sp, -4
-	#sw	$ra, 0($sp)		# push return address onto stack
+	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
 	
 	lw	$t0, SCREEN_WIDTH
 	addi	$a0, $t0, 11
 	li	$a1, 1
 	
-	addi	$sp, $sp, -8
-	#sw	$ra, 0($sp)		# push return address onto stack
-	sw	$s0, 0($sp)		# push old $s0 value on stack
-	sw	$s1, 4($sp)		# push old $s1 value on stack
-	
 	move	$s0, $a0		# store x coordinate
 	move	$s1, $a1		# store y coordinate
 	
@@ -1444,35 +1455,30 @@ delete_heart2:
 	sw	$t0, 0($sp)		# push colour red onto stack
 	move	$a0, $s0		# x position
 	move	$a1, $s1		# y position
-	li	$a2, 8			# 5 pixels long
-	li	$a3, 5			# 1 pixel high
+	li	$a2, 8
+	li	$a3, 5
 	jal	draw_rectangle	
+		
+	li	$t1, 0
+	sw	$t1, LIVES
 	
 	lw	$ra, 0($sp)		# get return address from stack
 	lw	$s0, 4($sp)		# pop old $s0 value from stack
 	lw	$s1, 8($sp)		# pop old $s1 value from stack
 	addi	$sp, $sp, 12
-	#jr	$ra
-		
-	li	$t1, 0
-	sw	$t1, LIVES
-	
-	# re-initialize game and ball & paddle
-	j	restart_game
+	jr	$ra
+
 
 delete_heart3:
-	#addi	$sp, $sp, -4
-	#sw	$ra, 0($sp)		# push return address onto stack
+	addi	$sp, $sp, -12
+	sw	$ra, 0($sp)		# push return address onto stack
+	sw	$s0, 4($sp)		# push old $s0 value on stack
+	sw	$s1, 8($sp)		# push old $s1 value on stack
 	
 	lw	$t0, SCREEN_WIDTH
 	addi	$a0, $t0, 19
 	li	$a1, 1
 	
-	addi	$sp, $sp, -8
-	#sw	$ra, 0($sp)		# push return address onto stack
-	sw	$s0, 0($sp)		# push old $s0 value on stack
-	sw	$s1, 4($sp)		# push old $s1 value on stack
-	
 	move	$s0, $a0		# store x coordinate
 	move	$s1, $a1		# store y coordinate
 	
@@ -1481,38 +1487,15 @@ delete_heart3:
 	sw	$t0, 0($sp)		# push colour red onto stack
 	move	$a0, $s0		# x position
 	move	$a1, $s1		# y position
-	li	$a2, 8			# 5 pixels long
-	li	$a3, 5			# 1 pixel high
+	li	$a2, 8
+	li	$a3, 5
 	jal	draw_rectangle	
+		
+	li	$t1, 1
+	sw	$t1, LIVES
 	
 	lw	$ra, 0($sp)		# get return address from stack
 	lw	$s0, 4($sp)		# pop old $s0 value from stack
 	lw	$s1, 8($sp)		# pop old $s1 value from stack
 	addi	$sp, $sp, 12
-	#jr	$ra
-		
-	li	$t1, 1
-	sw	$t1, LIVES
-	
-	# re-initialize game and ball & paddle
-	j	restart_game
-
-
-# DO NOT CHANGE ANY ARGUMENT REGISTERS
-get_pixel_address:
-	lw	$t0, SCREEN_WIDTH	# load screen width
-	lw	$t1, ADDR_DSPL
-
-	lw	$t2, 0($sp)		# pop x from stack
-	lw	$t3, 4($sp)		# pop y from stack
-	addi	$sp, $sp, 8
-
-	mulo	$t3, $t0, $t3		# find position of leftmost pixel of row y
-	add	$t2, $t2, $t3		# find position of pixel (x, y)
-	sll	$t2, $t2, 2		# calculate offset of pixel (x, y) memory address from base
-	add 	$t2, $t1, $t2		# get ptr to memory address of pixel (x', y')
-	
-	addi	$sp, $sp, -4
-	sw	$t2, 0($sp)
 	jr	$ra
-	

@@ -32,7 +32,7 @@ ADDR_KBRD:
 .extern	STATS_HEIGHT	32
 
 .extern	WALL_WIDTH	32
-
+	
 .extern BUFFER_COLOUR	32
 
 # (width, height)
@@ -51,7 +51,7 @@ ADDR_KBRD:
 
 # y coordinate of the top of the first row of bricks
 .extern	BRICKS_Y	32	# size of 1 word
-	
+
 # 2-D array storing colour of each brick
 #.extern BRICKS		368			# (number of rows * number of bricks per row + 2) * bytes per word
 .extern BRICKS		64
@@ -69,7 +69,7 @@ ADDR_KBRD:
 # Code
 ##############################################################################
 	.text
-	.globl	main game_loop restart_game end
+	.globl	main game_loop end
 	
 initialize:
 	li	$t0, 128
@@ -175,33 +175,6 @@ sleep:	li	$v0, 32
 
     	#5. Go back to 1
 	b	game_loop
-	
-restart_game:
-	
-	# reinitialze paddle and ball locations
-	li	$t0, 57
-	li	$t1, 61
-	sw	$t0, PADDLE_COORDS	# paddle x s.t. it is in the center of the scrren
-	sw	$t1, PADDLE_COORDS+4
-	
-	li	$t0, 0xaaaaaa
-	sw	$t0, PADDLE_COLOUR
-	
-	li	$t0, 63
-	sw	$t0, BALL_COORDS
-	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
-	addi	$t0, $t0, -1
-	sw	$t0, BALL_COORDS+4	# ball initially starts on top the paddle
-	
-	li	$t0, 0xffffff
-	sw	$t0, BALL_COLOUR
-	li	$t0, 0
-	sw	$t0, DIRECTION		# initially the ball does not move
-	
-	jal	draw_paddle		# draw paddle in the center of the screen
-	jal	draw_ball		# draw the ball on the center of the paddle
-	
-	j	game_loop
 
 end:	li	$v0, 10 
 	syscall				# exit program gracefully

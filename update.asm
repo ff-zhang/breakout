@@ -126,7 +126,7 @@ check:	jal	next_location
 	lw	$s0, 0($sp)		# save predicted x coordinate
 	lw	$s1, 4($sp)		# save predicted y coordinate
 	
-	bge	$s1, 64, check_lives		# check lives before ending if ball is off screen (screen height is 64)
+	bge	$s1, 64, check_lives	# check lives before ending if ball is off screen (screen height is 64)
 	
 	# next_location returns (x, y) on the stack but we can immideatly pass it to get_pixel_address
 	jal	get_pixel_address
@@ -267,33 +267,54 @@ update_score:
 	j	return
 
 check_lives:
-	li	$v0, 32
-	li	$a0, 400		# time delay
-	syscall
+	addi	$sp, $sp, 8		# remove x, y returned from next_location from stacks
 	
 	#  delete previous ball and paddle
 	jal 	delete_ball
 	jal	delete_paddle
 	
-	li	$v0, 32
-	li	$a0, 40		# time delay
-	syscall
+	lw	$t4, LIVES		# load number of lives
 	
-	lw	$t4, LIVES		# load $ of lives
+	li	$t3, 2			# delete 1 heart ( - 1 life)
+lives3:	bne 	$t4, $t3, lives2	# 2 hearts left
+	jal	delete_heart3
+	j	restart_game
 	
-	# delete 1 heart ( - 1 life)
-	li	$t3, 2
-	li	$t2, 1
-	li	$t1, 0
+lives2:	li	$t2, 1
+	bne 	$t4, $t2, lives1	# 1 heart left
+	jal	delete_heart2
+	j	restart_game
 	
-	beq 	$t4, $t3, delete_heart3	# 2 hearts left
+lives1:	li	$t1, 0
+	bne 	$t4, $t1, end	# no more lives
+	jal	delete_heart1
+	j	end
+
+restart_game:
+	# reinitialze paddle and ball locations
+	li	$t0, 57
+	li	$t1, 61
+	sw	$t0, PADDLE_COORDS	# paddle x s.t. it is in the center of the scrren
+	sw	$t1, PADDLE_COORDS+4
 	
-	beq 	$t4, $t2, delete_heart2	# 1 heart left
+	li	$t0, 0xaaaaaa
+	sw	$t0, PADDLE_COLOUR
 	
-	beq 	$t4, $t1, delete_heart1	# no more lives
+	li	$t0, 63
+	sw	$t0, BALL_COORDS
+	lw	$t0, PADDLE_COORDS+4	# load paddle y coordinate
+	addi	$t0, $t0, -1
+	sw	$t0, BALL_COORDS+4	# ball initially starts on top the paddle
 	
-	# if lives = 0, end game
-	# beqz 	$t3, end
+	li	$t0, 0xffffff
+	sw	$t0, BALL_COLOUR
+	li	$t0, 0
+	sw	$t0, DIRECTION		# initially the ball does not move
+	
+	jal	draw_paddle		# draw paddle in the center of the screen
+	jal	draw_ball		# draw the ball on the center of the paddle
+	
+	j	r1
 
 
 return:	jal	next_location
@@ -303,13 +324,13 @@ return:	jal	next_location
 	lw	$t1, 0($t0)		# get colour of predicted pixel
 	bnez	$t1, check
 	
-	lw	$ra, 0($sp)
-	sw	$s0, 4($sp)
-	sw	$s1, 8($sp)
-	sw	$s2, 12($sp)
+r1:	lw	$ra, 0($sp)
+	lw	$s0, 4($sp)
+	lw	$s1, 8($sp)
+	lw	$s2, 12($sp)
 	addi	$sp, $sp, 16
 	jr	$ra
-
+	
 
 # function
 update_ball:
@@ -342,6 +363,7 @@ next_location:
 	beq	$a0, -3, move_SW
 	beq	$a0, -2, move_S
 	beq	$a0, -1, move_SE
+	beq	$a0, 0, no_move
 	beq	$a0, 1, move_NW		# ball goes northwest
 	beq	$a0, 2, move_N		# ball goes straight up
 	beq	$a0, 3, move_NE		# ball goes northeast
@@ -357,6 +379,9 @@ move_S:	addi	$t2, $t2, 1
 move_SE:
 	addi	$t1, $t1, 1		# decrease x coordinate by 1 (ball goes right)
 	addi	$t2, $t2, 1		# decrease y coordinate by 1 (ball goes up)
+	j	c1
+	
+no_move:
 	j	c1
 
 move_NW:
