@@ -88,8 +88,6 @@ MUTABLE DATA     &                                                              
     \label{f:milestone1_drawing}
 \end{figure}
 
-\end{enumerate}
-
 \section{Part III: Milestone 2}
 
 \item \textbf{QUESTION: } How will the ball change directions when it collides? \\[0.4em]
@@ -108,18 +106,28 @@ So, if the ball was travelling north before colliding with the bottom of a brick
 \item Upload breakout.asm to MarkUs so that you have a snapshot of your progress so far.
 
 \newpage
-\section{Part V: DEMONSTRATION 2 Milestone 4 and 5}
-\item For our Milestones 4 and 5, we decided to do (a cumulative) 3 easy features and 2 hard features. \\
+\section{Part V: Milestone 4 and 5}
+\item For our Milestones 4 and 5, we decided to do (a total of) 3 easy features and 2 hard features.
 We chose the easy features: 1 (multiple lives), 5 (pause game), and 9 (launch ball)
 and hard features: 1 (track score) and 3 (bricks need multiple hits).
 \\ \\
 \textbf{Detailed Changes Made: }
 \begin{enumerate}
-  \item (EASY) 1 - Multiple Lives: There are three hearts at the top left corner which correspond to the amount of lives you have. You start with three lives and once you lose all your hearts (lives), then the game ends. If you "lose" and still have lives left, then you will restart from the initial position where you will have to launch the ball again to CONTINUE playing with the same amount of bricks broken as before.
-  \item (EASY) 5 - Pause Game: This is a simple feature where any time the user clicks the exact key 'p', then the game will enter a 'paused' state where there is no movement (from player or game). In order to continue playing, the user must hit any other key, other than 'p', in order for the game to resume playing state and the ball will once again move.
-  \item (EASY) 9 - Launch Ball: At the beginning of every game, or at the beginning of every "new life" when the player has been initialized at the starting position (ball and paddle are in the middle of the screen), then they must launch the ball by pressing the spacebar in order to start the game.
-  \item (HARD) 1 - Track Score: For every brick hit by the ball, the score on the top right of the screen will increment by 1. In correlation to Multi-Hit Bricks, a 'brighter' coloured brick, once fully broken, awards the player 2 points. After a 'brighter' brick is hit by the ball, it's broken into a 'darker' brick [+ 1 points], and once that 'darker' brick is hit by the ball, it is completely destroyed [+ 1 points].
-  \item (HARD) 3 - Multi-Hit Bricks: There are 6 different colours of bricks in this game. There are red, green, and blue coloured bricks as well as their 'darker' counterparts. When the brick is 'brighter' it means that it requires two hits to break. When a 'brighter' brick is hit once, it turns into a 'darker' brick of that same colour. Once a 'darker' brick is broken, then it is deleted/destroyed from the game. 
+  \item (EASY) 1 - Multiple Lives: There are three hearts at the top left corner which correspond to the amount of lives you have. 
+  You start with three lives and once you lose all your hearts (lives), then the game ends. 
+  If you ``lose'' and still have lives left, then you will restart from the initial position where you will have to launch the ball again to CONTINUE playing with the same amount of bricks broken as before.
+  \item (EASY) 5 - Pause Game: This is a simple feature where any time the user inputs the key 'p', then the game will enter a 'paused' state where there is no movement (from player or game). 
+  In order to continue playing, the user must hit any key other than [p], in order for the game to re-enter the playing state so that the ball and paddle can move.
+  \item (EASY) 9 - Start Game: At the beginning of every game and whenever the player loses the life, the bvall and paddle are initialized in their starting position (in the middle of the screen).
+  The player must then launch the ball by pressing the spacebar in order to start the game.
+  \item (HARD) 1 - Track Score: For every brick hit by the ball, the score on the top right of the screen will increment by $1$. 
+  With respect to the multi-hit bricks (the ``brightly-coloured'' bricks), once fully broken, each one awards the player 2 points. 
+  After a ``brighter'' brick is hit by the ball, it's broken into a ``darker'' brick [+ 1 points], and once that ``darker'' brick is hit by the ball, it is completely destroyed [+ 1 points].
+  \item (HARD) 3 - Multi-Hit Bricks: There are 6 different colours of bricks in this game. 
+  There are red, green, and blue coloured bricks as well as their ``darker'' counterparts. 
+  When the brick is ``brighter'', it means that it requires two hits to break.
+  When a ``brighter'' brick for the first time, it transforms into a ``darker'' brick of the same colour. 
+  Once a ``darker'' brick is broken, then it is destroyed (deleted from the game). 
 \end{enumerate}
 
 \newpage
@@ -127,24 +135,26 @@ and hard features: 1 (track score) and 3 (bricks need multiple hits).
 
 \textbf{GAME LAYOUT}:
 \begin{itemize}
-    \item Once you assemble and run the program, you will be met with the game screen as well as the 'STATS' section on the top of the game which contains your lives (hearts) as well as your score in numbers.
+    \item Once you assemble and run the program, you will be met with the play area as well as the `STATS'' section on the top of the game which displays your lives (hearts) and your score.
 \end{itemize}
 
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=0.5\textwidth]{game_start.png}
-    \caption{This is the Game's Initial Start Screen}
+    \caption{Initial Start Screen}
     \label{f:Initial Start Screen}
 \end{figure}
 
 \textbf{START GUIDE}:
 \begin{itemize}
-    \item You begin with 3 lives represented by hearts (top-left of screen). 
+    \item You begin with 3 lives represented by hearts (at the top-left of screen). 
     \item In this game you will be chasing after the ball (white square) with your paddle (grey rectangle) and attempt to continue bouncing it off the paddle to aim and destroy the coloured blocks above you.
     \item To begin you must launch the ball from the paddle using the [Spacebar].
     \item Your paddle can move left and right using keys [a] for left and [d] for right, but CANNOT go past the walls OR go up and down, this is your paddle's boundary.
     \item The ball can go anywhere within the grey boundary, but if the ball reaches the bottom of the screen, which is past the paddle, then you lose a life.
-    \item If you reach this bottom of the screen and lose a life, it will be reflected on the top left of your screen and you will lose a heart as well. If you have remaining lives, then you will restart from the middle of the screen just like when you first started the game. \\ Note: You will continue your progress and the amount of bricks broken, as well as your score, will not be reset.
+    \item If you reach this bottom of the screen and lose a life, it will be reflected on the top left of your screen and you will lose a heart as well. 
+    If you have remaining lives, then you will restart from the middle of the screen just like when you first started the game. \\ 
+    (\emph{Note:} Your progressm, the amount of bricks broken, and your score will not be reset.)
     \item There are two types of bricks, 'brighter' bricks and 'darker' bricks. For each hit on either brick, you will receive 1 point, which will be reflected in your score on the top-right of the screen. Once hit, a 'brighter' brick will be broken down (transformed) into a 'darker' brick. Once a 'darker' brick is hit, then that brick is 'destroyed' and will turn into empty space that the ball can move through. 
     \item The game ends when you have broken every single brick leaving you with an empty space to freely practice your paddle skills with the ball.
 \end{itemize}
@@ -152,7 +162,7 @@ and hard features: 1 (track score) and 3 (bricks need multiple hits).
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=0.5\textwidth]{gameplay1.png}
-    \caption{This is what it looks like if the player broke some blocks then lost a life.}
+    \caption{This is what it looks like if the player broke some blocks and lost a life.}
     \label{f: Gameplay 1}
 \end{figure}
 
@@ -161,41 +171,41 @@ and hard features: 1 (track score) and 3 (bricks need multiple hits).
     \item Score: Increments by 1 for every block broken. 
     \item Lives: 3 chances to complete the game, every time the ball touches the bottom of the screen, you lose a life. Lose all lives and the game ends.
     \item Collision: The paddle will collide with the wall and cannot go past it. The ball will collide with the paddle or wall, bouncing off of it.
-    \item Pause Game: You can enter a paused game state pressing the key [p]. Exit pause with any key aside from [p].
+    \item Pause Game: You can paused the game by pressing the key [p]. Exit pause with any key aside from [p].
     \item End Game: You can exit/terminate the game when you press either of the two keys, [q] or [x]. \\ 
 \end{itemize}
 
-\textbf{SUMMARIZED GAME CONTROLS}: \\ \\
+\textbf{GAME CONTROLS}: \\ \\
     \textit{PADDLE MOVEMENT} 
     \begin{itemize}
-        \item [\textbf{a}] Paddle Left
-        \item [\textbf{d}] Paddle Right \\
+        \item [\textbf{a}] Move paddle left
+        \item [\textbf{d}] Move paddle right \\
     \end{itemize}
 
      \textit{LAUNCH BALL}
     \begin{itemize}
-        \item [\textbf{spacebar}] Launch Ball at start (Goes Straight Up) \\
+        \item [\textbf{spacebar}] Launch the ball straight up to (re)start the game \\
     \end{itemize}
     
-    \textit{PAUSE/UNPAUSE GAME}
+    \textit{PAUSE GAME}
     \begin{itemize}
-        \item [\textbf{p}] Press Once to Set The Game into a Paused State
-        \item [\textbf{Any Key}] Any Key Aside from [\textbf{p}] will UnPause The Game and Continue the Ball's Movement. \\
+        \item [\textbf{p}] Press once to Set The Game into a Paused State
+        \item [\textbf{any key}] Any key (aside from [p]) will unpause the game  \\
     \end{itemize}
     
     \textit{EXIT GAME}
     \begin{itemize}
-        \item [\textbf{q}] Press Once to Exit Game
-        \item [\textbf{x}] Press Once to Exit Game \\
+        \item [\textbf{q}] Press once to exit game
+        \item [\textbf{x}] Press once to exit game \\
     \end{itemize}
     
 \begin{figure}[ht!]
     \centering
     \includegraphics[width=0.5\textwidth]{gameplay2.png}
-    \caption{Game Over! The player lost all their lives and the game is finished. This is their final score.}
+    \caption{Game Over! The player lost all their lives and the game has ended. Their final score is in the top-right corner.}
     \label{f: Gameplay 2}
 \end{figure}
 
-
+\end{enumerate}
 
 \end{document}
